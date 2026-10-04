@@ -25,7 +25,7 @@ const { COLUMNAS_ESTADO } = require('../src/Hoja.js');
 
 const bytes = (texto) => Buffer.byteLength(texto, 'utf8');
 const CREADO = new Date(2026, 8, 26, 16, 10, 20);
-const datosGasto = { intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-08-15', total: 25, clase: 'GROCERIES' };
+const datosGasto = { intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-08-15', total: 25, clase: 'GROCERIES' };
 
 /** Filas de _ESTADO sin encabezado, como las devuelve getValues. */
 const filaEstado = (valores) => COLUMNAS_ESTADO.map((c) => (c in valores ? valores[c] : ''));

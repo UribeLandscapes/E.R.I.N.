@@ -203,7 +203,7 @@ function dependencias(ss, raiz, extra = {}) {
 const datosFoto = (extra = {}) => ({
   legible: true,
   tipo_documento: 'TICKET',
-  proveedor: 'Riba Smith',
+  proveedor: 'Whole Foods',
   fecha: '2026-09-27',
   moneda: 'USD',
   forma_pago: 'EFECTIVO',
@@ -212,7 +212,7 @@ const datosFoto = (extra = {}) => ({
   clase: 'GROCERIES',
   casa: null,
   comentario: null,
-  descripcion_corta: 'super riba smith',
+  descripcion_corta: 'super whole foods',
   confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
   ...extra,
 });
@@ -264,7 +264,7 @@ function conFoto(extracciones = [datosFoto()], mensaje = mensajeFoto(), extraDep
 test('una foto de factura escribe la fila con el enlace FOTO y confirma con "ver foto"', () => {
   const { sep, d } = conFoto();
   const fila = filaDe(sep, 8);
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
   assert.equal(fila['GASTO (USD)'], 22.5);
   assert.equal(fila.FECHA, '2026-09-27');
   assert.match(fila.FOTO, /^https:\/\/drive\.google\.com\/file\/d\/archivo-\d+\/view$/);
@@ -276,7 +276,7 @@ test('una foto de factura escribe la fila con el enlace FOTO y confirma con "ver
 
 test('la foto leída queda clasificada en la carpeta del mes con su nombre final', () => {
   const { raiz } = conFoto();
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super whole foods.jpg']);
 });
 
 test('la confirmación de la foto deja su REGISTRO abierto con la foto y su id en DATOS', () => {
@@ -315,10 +315,10 @@ const mensajeDocumento = (extra = {}) => ({
 test('una factura mandada como archivo (document image/jpeg) se lee, archiva y escribe igual que una foto', () => {
   const { sep, d, raiz } = conFoto([datosFoto()], mensajeDocumento());
   const fila = filaDe(sep, 8);
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
   assert.equal(fila['GASTO (USD)'], 22.5);
   assert.match(fila.FOTO, /^https:\/\/drive\.google\.com\/file\/d\/archivo-\d+\/view$/);
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super whole foods.jpg']);
   assert.match(textoEnviado(d), /<b>Foto:<\/b> <a href="https:\/\/drive\.google\.com\/file\/d\/archivo-\d+\/view">ver foto<\/a>/);
 });
 
@@ -330,9 +330,9 @@ test('un document que es un PDF se lee, archiva (con extensión .pdf) y escribe 
     { descargar: () => blobFalso('application/pdf') },
   );
   const fila = filaDe(sep, 8);
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
   assert.equal(fila['GASTO (USD)'], 22.5);
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super riba smith.pdf']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super whole foods.pdf']);
   assert.match(textoEnviado(d), /<b>Foto:<\/b> <a href="https:\/\/drive\.google\.com\/file\/d\/archivo-\d+\/view">ver foto<\/a>/);
 });
 
@@ -440,7 +440,7 @@ test('el botón "la fecha del recibo" escribe la fila con FOTO y mueve la foto a
   const fila = filaDe(agosto, 6);
   assert.equal(fila.FECHA, '2026-08-15');
   assert.match(fila.FOTO, /^https:\/\/drive\.google\.com\/file\/d\/archivo-\d+\/view$/);
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/8. Agosto/2026.08.15 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/8. Agosto/2026.08.15 - super whole foods.jpg']);
   assert.match(textoEnviado(d, 1), /<b>Foto:<\/b> <a href="https:\/\/drive\.google\.com\/file\/d\/archivo-\d+\/view">ver foto<\/a>/);
 });
 
@@ -451,7 +451,7 @@ test('el botón "el día que la mandé" también mueve la foto, al mes del enví
     data: `fecha:${ID_ERIN}:envio`,
     message: { message_id: 901, date: 1790000000, chat: { id: CHAT, type: 'private' } },
   }, d, estado);
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super whole foods.jpg']);
 });
 
 test('el botón de fecha de una entrada de texto (sin foto) no toca Drive', () => {
@@ -464,7 +464,7 @@ test('el botón de fecha de una entrada de texto (sin foto) no toca Drive', () =
   });
   atenderMensaje_({
     message_id: ID_ERIN, date: Math.floor(AHORA.getTime() / 1000), chat: { id: CHAT, type: 'private' },
-    text: '22.50 super Riba Smith del 15 de agosto',
+    text: '22.50 super Whole Foods del 15 de agosto',
   }, d, caso.estado);
   atenderBoton_({
     id: 'cb-3',
@@ -478,15 +478,15 @@ test('el botón de fecha de una entrada de texto (sin foto) no toca Drive', () =
 
 test('corregir una entrada que vino de una foto conserva el enlace FOTO y la línea "ver foto"', () => {
   const { sep, estado, d } = conFoto([datosFoto(), {
-    ...datosFoto({ proveedor: 'Super 99', lineas: [], total: null }), intencion: 'CORREGIR',
+    ...datosFoto({ proveedor: 'Seven 11', lineas: [], total: null }), intencion: 'CORREGIR',
   }]);
   const enlace = filaDe(sep, 8).FOTO;
   atenderMensaje_({
     message_id: ID_ERIN + 1, date: Math.floor(AHORA.getTime() / 1000), chat: { id: CHAT, type: 'private' },
-    text: 'el proveedor es Super 99', reply_to_message: { message_id: 901, text: 'Listo' },
+    text: 'el proveedor es Seven 11', reply_to_message: { message_id: 901, text: 'Listo' },
   }, d, estado);
   const nueva = filaDe(sep, 9);
-  assert.equal(nueva.PROVEEDOR, 'Super 99');
+  assert.equal(nueva.PROVEEDOR, 'Seven 11');
   assert.equal(nueva.FOTO, enlace);
   assert.match(textoEnviado(d, 1), /^Listo, corregí el gasto\. Así quedó:/);
   assert.ok(textoEnviado(d, 1).includes(`<a href="${enlace}">ver foto</a>`), textoEnviado(d, 1));
@@ -601,7 +601,7 @@ test('una fecha escrita del mismo mes corrige la fila sin pasar por Gemini', () 
   assert.equal(pedidos.length, 1, 'Gemini solo se llamó por la foto');
   const nueva = filaDe(sep, 9);
   assert.equal(nueva.FECHA, '2026-09-25');
-  assert.equal(nueva['ID FACTURA'], 'RIBASMITH-20260925');
+  assert.equal(nueva['ID FACTURA'], 'WHOLEFOODS-20260925');
   assert.equal(filaDe(sep, 8).PROVEEDOR, '');
   assert.equal(celdaEstado(estado, filaFechaFotoDe(estado), 'ESTADO'), 'CERRADA');
 });
@@ -638,8 +638,8 @@ test('una fecha escrita de otro mes mueve las filas y recalcula el ID FACTURA', 
   const agosto = ss.getSheetByName('Agosto 2026');
   const fila = filaDe(agosto, 6);
   assert.equal(fila.FECHA, '2026-08-15');
-  assert.equal(fila['ID FACTURA'], 'RIBASMITH-20260815');
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila['ID FACTURA'], 'WHOLEFOODS-20260815');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
   assert.match(fila.FOTO, /^https:\/\/drive\.google\.com\//);
   assert.equal(filaDe(sep, 8).PROVEEDOR, '');
   assert.match(textoEnviado(d), /^Listo, corregí el gasto\. Así quedó:/);
@@ -713,17 +713,17 @@ test('corregir la fecha a otro mes mueve la foto a la carpeta de ese mes', () =>
     reply_to_message: { message_id: 901, text: 'Listo' },
   }), d, estado);
   assert.equal(filaDe(ss.getSheetByName('Agosto 2026'), 6).FECHA, '2026-08-15');
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/8. Agosto/2026.08.15 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/8. Agosto/2026.08.15 - super whole foods.jpg']);
 });
 
 test('una corrección del mismo mes deja la foto donde está', () => {
   const { raiz, d, estado } = conFoto([datosFoto(), {
-    ...datosFoto({ proveedor: 'Super 99', lineas: [], total: null }), intencion: 'CORREGIR',
+    ...datosFoto({ proveedor: 'Seven 11', lineas: [], total: null }), intencion: 'CORREGIR',
   }]);
-  atenderMensaje_(mensajeTexto('el proveedor es Super 99', {
+  atenderMensaje_(mensajeTexto('el proveedor es Seven 11', {
     reply_to_message: { message_id: 901, text: 'Listo' },
   }), d, estado);
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super whole foods.jpg']);
 });
 
 test('una corrección de una entrada de texto (sin foto) no toca Drive', () => {
@@ -737,7 +737,7 @@ test('una corrección de una entrada de texto (sin foto) no toca Drive', () => {
     carpetaFacturas: () => { throw new Error('no debería tocar Drive'); },
     archivoPorId: () => { throw new Error('no debería tocar Drive'); },
   });
-  atenderMensaje_(mensajeTexto('22.50 super Riba Smith'), d, caso.estado);
+  atenderMensaje_(mensajeTexto('22.50 super Whole Foods'), d, caso.estado);
   atenderMensaje_(mensajeTexto('la fecha es el 15 de agosto', {
     reply_to_message: { message_id: 901, text: 'Listo' },
   }), d, caso.estado);
@@ -748,7 +748,7 @@ test('la fecha escrita de otro mes también mueve la foto a ese mes', () => {
   const { estado, d, raiz } = conFotoSinFecha();
   tocar(d, estado, 'otra');
   escribir(d, estado, '15/08');
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/8. Agosto/2026.08.15 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/8. Agosto/2026.08.15 - super whole foods.jpg']);
 });
 
 // --- Foto sin fecha Y sin monto: la fecha se pregunta cuando el usuario dice el monto (hueco 3) ---
@@ -763,7 +763,7 @@ test('al contestar el monto de una foto sin fecha legible se escribe, se clasifi
   const fila = filaDe(sep, 8);
   assert.equal(fila['GASTO (USD)'], 30);
   assert.equal(fila.FECHA, '2026-09-27');
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super whole foods.jpg']);
   assert.equal(enviados(d).length, 2);
   assert.equal(textoEnviado(d, 1), textoFechaIlegible_('2026-09-27'));
   assert.deepEqual(enviados(d)[1][1].reply_markup, tecladoFechaFoto_(ID_ERIN));
@@ -786,9 +786,9 @@ test('al contestar el monto de una foto con fecha legible no se pregunta ninguna
 
 // --- Dos fotos esperando fecha a la vez (hueco 2) ---
 
-/** Dos fotos sin fecha legible, una de Riba Smith (501) y otra de Super 99 (511). */
+/** Dos fotos sin fecha legible, una de Whole Foods (501) y otra de Seven 11 (511). */
 function dosFotosSinFecha() {
-  const caso = conFotoSinFecha([fotoSinFecha(), fotoSinFecha({ proveedor: 'Super 99', descripcion_corta: 'super 99' })]);
+  const caso = conFotoSinFecha([fotoSinFecha(), fotoSinFecha({ proveedor: 'Seven 11', descripcion_corta: 'seven 11' })]);
   atenderMensaje_(mensajeFoto({ message_id: ID_ERIN + 10 }), caso.d, caso.estado);
   return caso;
 }
@@ -801,7 +801,7 @@ test('con dos fotos esperando, la fecha escrita sin "Responder" va a la que toc�
   d.ahora = () => new Date(2026, 8, 27, 10, 0, 0);
   tocar(d, estado, 'otra', ID_ERIN);
   escribir(d, estado, '15/08');
-  assert.equal(proveedorEnAgosto(ss), 'Riba Smith');
+  assert.equal(proveedorEnAgosto(ss), 'Whole Foods');
 });
 
 test('con dos fotos esperando, "Responder" sobre la pregunta manda la fecha a esa foto', () => {
@@ -810,7 +810,7 @@ test('con dos fotos esperando, "Responder" sobre la pregunta manda la fecha a es
   d.ahora = () => new Date(2026, 8, 27, 10, 0, 0);
   tocar(d, estado, 'otra', ID_ERIN + 10);
   atenderMensaje_(mensajeTexto('15/08', { reply_to_message: { message_id: 902, text: 'No pude leer la fecha' } }), d, estado);
-  assert.equal(proveedorEnAgosto(ss), 'Riba Smith');
+  assert.equal(proveedorEnAgosto(ss), 'Whole Foods');
 });
 
 test('con dos fotos esperando, "Responder" sobre la confirmación manda la fecha a esa foto', () => {
@@ -819,7 +819,7 @@ test('con dos fotos esperando, "Responder" sobre la confirmación manda la fecha
   d.ahora = () => new Date(2026, 8, 27, 10, 0, 0);
   tocar(d, estado, 'otra', ID_ERIN + 10);
   atenderMensaje_(mensajeTexto('15/08', { reply_to_message: { message_id: 901, text: 'Listo' } }), d, estado);
-  assert.equal(proveedorEnAgosto(ss), 'Riba Smith');
+  assert.equal(proveedorEnAgosto(ss), 'Whole Foods');
 });
 
 test('con dos fotos esperando, "Responder" sobre la propia foto manda la fecha a esa foto', () => {
@@ -828,7 +828,7 @@ test('con dos fotos esperando, "Responder" sobre la propia foto manda la fecha a
   d.ahora = () => new Date(2026, 8, 27, 10, 0, 0);
   tocar(d, estado, 'otra', ID_ERIN + 10);
   atenderMensaje_(mensajeTexto('15/08', { reply_to_message: { message_id: ID_ERIN } }), d, estado);
-  assert.equal(proveedorEnAgosto(ss), 'Riba Smith');
+  assert.equal(proveedorEnAgosto(ss), 'Whole Foods');
 });
 
 // --- La fecha escrita se lee con el año de la foto, no con el del día en que la escribe (hueco 4) ---
@@ -854,9 +854,9 @@ test('"Responder" sobre un mensaje cualquiera no rompe: la fecha va a la pregunt
 
 // ---: aviso de factura duplicada ---
 
-/** Fila ya anotada en Septiembre 2026 que coincide con la foto por defecto (Riba Smith, 22.50). */
+/** Fila ya anotada en Septiembre 2026 que coincide con la foto por defecto (Whole Foods, 22.50). */
 const GASTO_IGUAL = {
-  FECHA: '2026-09-27', 'ID FACTURA': 'RIBASMITH-20260927', PROVEEDOR: 'Riba Smith', TIPO: 'GASTO',
+  FECHA: '2026-09-27', 'ID FACTURA': 'WHOLEFOODS-20260927', PROVEEDOR: 'Whole Foods', TIPO: 'GASTO',
   'GASTO (USD)': 22.5, MONEDA: 'USD', 'ID FILA': 'BOT-viejo-3', ORIGEN: 'BOT',
   REGISTRADO: new Date(2026, 8, 27, 8, 0, 0),
 };
@@ -886,7 +886,7 @@ test('foto ya anotada: avisa con los dos botones, no escribe filas y deja la fot
   const { sep, estado, raiz, d } = conFotoRepetida();
   assert.equal(enviados(d).length, 1);
   assert.equal(textoEnviado(d),
-    'Esta factura ya está anotada: la agregaste el 27/09/2026 por 22.50, proveedor Riba Smith.');
+    'Esta factura ya está anotada: la agregaste el 27/09/2026 por 22.50, proveedor Whole Foods.');
   assert.deepEqual(enviados(d)[0][1].reply_markup, tecladoDuplicado_(ID_ERIN));
   assert.equal(filaDe(sep, 9).PROVEEDOR, '');
   assert.deepEqual(archivosDe(raiz), ['Facturas/Por clasificar/tg-501.jpg']);
@@ -904,11 +904,11 @@ test('foto ya anotada: avisa con los dos botones, no escribe filas y deja la fot
 test('foto ya anotada en el Excel viejo: el aviso lo dice y usa la fecha de la factura', () => {
   const { d } = conFotoRepetida({ ...GASTO_IGUAL, ORIGEN: 'ARCHIVO', REGISTRADO: new Date(2026, 8, 29, 18, 0, 0) });
   assert.equal(textoEnviado(d),
-    'Esta factura ya está anotada en el Excel viejo: factura del 27/09/2026 por 22.50, proveedor Riba Smith.');
+    'Esta factura ya está anotada en el Excel viejo: factura del 27/09/2026 por 22.50, proveedor Whole Foods.');
 });
 
 test('foto con otro total, otra fecha u otro proveedor que lo anotado se anota como siempre', () => {
-  [{ total: 23 }, { fecha: '2026-09-26' }, { proveedor: 'Super 99' }].forEach((cambio) => {
+  [{ total: 23 }, { fecha: '2026-09-26' }, { proveedor: 'Seven 11' }].forEach((cambio) => {
     const { sep, d } = conFotoRepetida(GASTO_IGUAL, [datosFoto({
       ...cambio, ...(cambio.total ? { lineas: [{ tipo: 'ITEM', descripcion: 'compra', monto: 23, confianza: 'ALTA' }] } : {}),
     })]);
@@ -919,7 +919,7 @@ test('foto con otro total, otra fecha u otro proveedor que lo anotado se anota c
 
 test('un depósito igual no cuenta: la foto se anota normal', () => {
   const { sep } = conFotoRepetida({ ...GASTO_IGUAL, TIPO: 'DEPOSITO' });
-  assert.equal(filaDe(sep, 9).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 9).PROVEEDOR, 'Whole Foods');
 });
 
 test('S3: sin total no hay aviso, el bot pregunta el monto', () => {
@@ -930,7 +930,7 @@ test('S3: sin total no hay aviso, el bot pregunta el monto', () => {
 
 test('S3: fecha no legible no revisa duplicado (se anota con el día del mensaje)', () => {
   const { sep, d } = conFotoRepetida(GASTO_IGUAL, [fotoSinFecha()]);
-  assert.equal(filaDe(sep, 9).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 9).PROVEEDOR, 'Whole Foods');
   assert.equal(enviados(d).length, 2);
 });
 
@@ -947,7 +947,7 @@ test('S3: fecha de otro mes pregunta la fecha aunque haya una igual en ese mes, 
 test('S4: si no existe la pestaña del mes de la fecha no hay duplicado', () => {
   const caso = escenario();
   caso.ss.hojas.splice(caso.ss.hojas.indexOf(caso.sep), 1);
-  assert.equal(avisarSiDuplicada_({ ss: caso.ss }, { filas: [{ FECHA: '2026-09-27', PROVEEDOR: 'Riba Smith', 'GASTO (USD)': 22.5 }] }, {}, {}), false);
+  assert.equal(avisarSiDuplicada_({ ss: caso.ss }, { filas: [{ FECHA: '2026-09-27', PROVEEDOR: 'Whole Foods', 'GASTO (USD)': 22.5 }] }, {}, {}), false);
 });
 
 test('botón 1 "Me equivoqué": cierra, foto a la papelera, no escribe y contesta', () => {
@@ -1011,11 +1011,11 @@ test('2 y luego Sí: cierra, escribe la fila con FOTO, clasifica la foto y confi
   d.llamadas.length = 0;
   tocarDuplicado(d, estado, 'seguro');
   const fila = filaDe(sep, 9);
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
   assert.equal(fila['GASTO (USD)'], 22.5);
   assert.match(fila.FOTO, /^https:\/\/drive\.google\.com\/file\/d\/archivo-\d+\/view$/);
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
-  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super riba smith.jpg']);
+  assert.deepEqual(archivosDe(raiz), ['Facturas/2026/9. Septiembre/2026.09.27 - super whole foods.jpg']);
   assert.match(textoEnviado(d), /<b>Foto:<\/b> <a href/);
   assert.deepEqual(papelera, []);
   assert.equal(celdaEstado(estado, 3, 'TIPO'), 'REGISTRO');

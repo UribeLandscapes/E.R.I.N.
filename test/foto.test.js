@@ -48,14 +48,14 @@ function datosFoto(cambios) {
   return {
     legible: true,
     tipo_documento: 'TICKET',
-    proveedor: 'Riba Smith',
+    proveedor: 'Whole Foods',
     fecha: '2026-09-27',
     moneda: 'USD',
     forma_pago: 'EFECTIVO',
     lineas: [],
     total: 22.5,
     clase: 'GROCERIES',
-    descripcion_corta: 'super riba smith',
+    descripcion_corta: 'super whole foods',
     confianza: confianzaAlta,
     // La extracción de una foto no trae intención (esquemaExtraccion_ en modo foto); la
     // pone la capa de app antes de planear, porque planFoto_ ahora pasa por planTexto_.
@@ -336,7 +336,7 @@ test('planFoto_ sin monto no escribe filas pero sí avisa que la fecha no se ley
 
 test('planFoto_ arma nombreArchivo con la fecha usada, la descripción corta y el mimeType', () => {
   const { nombreArchivo } = planFoto_(datosFoto({}), contexto());
-  assert.equal(nombreArchivo, '2026.09.27 - super riba smith.jpg');
+  assert.equal(nombreArchivo, '2026.09.27 - super whole foods.jpg');
 });
 
 test('planFoto_ AE-e: Supuesto AD también aplica en fotos (descripción vacía o igual al proveedor)', () => {
@@ -352,7 +352,7 @@ test('planFoto_ AE-e: Supuesto AD también aplica en fotos (descripción vacía 
 
 test('planFoto_ ticket de súper con ITBMS y descuento: una fila con el desglose en sus columnas', () => {
   const datos = datosFoto({
-    proveedor: 'Super 99',
+    proveedor: 'Seven 11',
     lineas: [
       { tipo: 'ITEM', descripcion: 'Leche', monto: 20, confianza: 'ALTA' },
       { tipo: 'DESCUENTO', descripcion: 'Ahorro tarjeta', monto: -2, confianza: 'ALTA' },

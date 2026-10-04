@@ -44,7 +44,7 @@ const FRASES_PREGUNTA = Object.freeze({
 // Un solo lugar: la usan los saludos (sin Gemini), la intención AYUDA.
 const textoGuia_ = () => [
   `¡Hola ${CONFIG.NOMBRE_USUARIO}! ¿Qué quieres hacer hoy? Puedes escribirme así:`,
-  '1. Un gasto: "22.50 efectivo super Riba Smith" (con propina: "22.50 Riba, 1.50 de propina")',
+  '1. Un gasto: "22.50 efectivo super Whole Foods" (con propina: "22.50 Whole Foods, 1.50 de propina")',
   '2. Un depósito: "me depositaron 250"',
   '3. Revisar la caja: "tengo 85"',
   `4. La casa: agrega "${CONFIG.CASAS.SECUNDARIA.nombre}" o "${CONFIG.CASAS.PRINCIPAL.nombre}"`,
@@ -55,7 +55,7 @@ const textoGuia_ = () => [
 ].join('\n');
 // Texto (g): dos ejemplos y el camino a la guía completa.
 const TEXTO_NO_ENTENDI = 'No entendí bien. Puedes escribir, por ejemplo, '
-  + '"22.50 efectivo super Riba Smith" o "me depositaron 250". Escribe "ayuda" para ver '
+  + '"22.50 efectivo super Whole Foods" o "me depositaron 250". Escribe "ayuda" para ver '
   + 'todo lo que puedo hacer.';
 
 const esMonto_ = (m) => typeof m === 'number' && Number.isFinite(m);

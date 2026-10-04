@@ -32,7 +32,7 @@ test('rutaMes_ rechaza fechas inválidas', () => {
 });
 
 test('descripcionCorta_ deja máximo 5 palabras', () => {
-  assert.equal(descripcionCorta_('Super 99 compra de frutas y verduras'), 'Super 99 compra de frutas');
+  assert.equal(descripcionCorta_('Seven 11 compra de frutas y verduras'), 'Seven 11 compra de frutas');
 });
 
 test('descripcionCorta_ quita caracteres que Drive o Windows no aceptan en nombres', () => {
@@ -72,7 +72,7 @@ test('extensionMime_ de un tipo desconocido no pone extensión', () => {
 });
 
 test('nombreFoto_ arma "AAAA.MM.DD - descripción.ext"', () => {
-  assert.equal(nombreFoto_('2026-07-03', 'Super 99 compra', 'image/jpeg'), '2026.07.03 - Super 99 compra.jpg');
+  assert.equal(nombreFoto_('2026-07-03', 'Seven 11 compra', 'image/jpeg'), '2026.07.03 - Seven 11 compra.jpg');
   assert.equal(nombreFoto_('2026-09-26', '', 'application/pdf'), '2026.09.26 - factura.pdf');
   assert.equal(nombreFoto_('2026-09-26', 'algo', 'x/y'), '2026.09.26 - algo');
 });

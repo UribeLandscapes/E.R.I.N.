@@ -8,10 +8,10 @@ const {
 // --- Proveedor ---
 
 test('normalizarProveedor_ deja mayúsculas sin tildes, espacios ni signos', () => {
-  assert.equal(normalizarProveedor_('Riba Smith'), 'RIBASMITH');
+  assert.equal(normalizarProveedor_('Whole Foods'), 'WHOLEFOODS');
   assert.equal(normalizarProveedor_('Farmacia Arrocha, S.A.'), 'FARMACIAARROCHA');
   assert.equal(normalizarProveedor_('Panadería Ñoño'), 'PANADERIANONO');
-  assert.equal(normalizarProveedor_('  Súper 99  '), 'SUPER99');
+  assert.equal(normalizarProveedor_('  Séven 11  '), 'SEVEN11');
 });
 
 test('normalizarProveedor_ corta a 15 caracteres', () => {
@@ -30,57 +30,57 @@ test('normalizarProveedor_ devuelve texto vacío si no queda nada útil', () => 
 
 test('ortografiaProveedor_ usa la ortografía más frecuente del historial', () => {
   const historial = [
-    { proveedor: 'Super 99', clase: 'GROCERIES' },
-    { proveedor: 'Super 99', clase: 'GROCERIES' },
-    { proveedor: 'Super 99', clase: 'GROCERIES' },
-    { proveedor: 'SUPER 99', clase: 'GROCERIES' },
+    { proveedor: 'Seven 11', clase: 'GROCERIES' },
+    { proveedor: 'Seven 11', clase: 'GROCERIES' },
+    { proveedor: 'Seven 11', clase: 'GROCERIES' },
+    { proveedor: 'SEVEN 11', clase: 'GROCERIES' },
   ];
-  assert.equal(ortografiaProveedor_(historial, 'super 99'), 'Super 99');
+  assert.equal(ortografiaProveedor_(historial, 'seven 11'), 'Seven 11');
 });
 
 test('ortografiaProveedor_ desempata con la primera ortografía vista', () => {
   const historial = [
-    { proveedor: 'Riba Smith', clase: 'GROCERIES' },
-    { proveedor: 'RIBA SMITH', clase: 'GROCERIES' },
+    { proveedor: 'Whole Foods', clase: 'GROCERIES' },
+    { proveedor: 'WHOLE FOODS', clase: 'GROCERIES' },
   ];
-  assert.equal(ortografiaProveedor_(historial, 'riba smith'), 'Riba Smith');
+  assert.equal(ortografiaProveedor_(historial, 'whole foods'), 'Whole Foods');
 });
 
 test('ortografiaProveedor_ sin historial: todo en minúsculas queda con mayúscula inicial por palabra', () => {
-  assert.equal(ortografiaProveedor_([], 'super 99'), 'Super 99');
-  assert.equal(ortografiaProveedor_([], 'riba smith'), 'Riba Smith');
+  assert.equal(ortografiaProveedor_([], 'seven 11'), 'Seven 11');
+  assert.equal(ortografiaProveedor_([], 'whole foods'), 'Whole Foods');
 });
 
 test('ortografiaProveedor_ sin historial y con alguna mayúscula, se deja tal cual', () => {
   assert.equal(ortografiaProveedor_([], "McDonald's"), "McDonald's");
-  assert.equal(ortografiaProveedor_([], 'Riba Smith'), 'Riba Smith');
+  assert.equal(ortografiaProveedor_([], 'Whole Foods'), 'Whole Foods');
 });
 
 test('ortografiaProveedor_ nunca cambia PENDIENTE ni vacío', () => {
   assert.equal(ortografiaProveedor_([], 'PENDIENTE'), 'PENDIENTE');
-  assert.equal(ortografiaProveedor_([{ proveedor: 'Super 99' }], ''), '');
+  assert.equal(ortografiaProveedor_([{ proveedor: 'Seven 11' }], ''), '');
 });
 
 test('ortografiaProveedor_ ignora del historial los proveedores de otro comercio', () => {
-  const historial = [{ proveedor: 'Riba Smith', clase: 'GROCERIES' }];
-  assert.equal(ortografiaProveedor_(historial, 'super 99'), 'Super 99');
+  const historial = [{ proveedor: 'Whole Foods', clase: 'GROCERIES' }];
+  assert.equal(ortografiaProveedor_(historial, 'seven 11'), 'Seven 11');
 });
 
 // --- ID FACTURA ---
 
 test('idFactura_ arma PROVEEDOR-AAAAMMDD', () => {
-  assert.equal(idFactura_('Riba Smith', '2026-07-03', []), 'RIBASMITH-20260703');
+  assert.equal(idFactura_('Whole Foods', '2026-07-03', []), 'WHOLEFOODS-20260703');
 });
 
 test('idFactura_ agrega -2, -3… si el ID ya existe en el archivo', () => {
-  assert.equal(idFactura_('Riba Smith', '2026-07-03', ['RIBASMITH-20260703']), 'RIBASMITH-20260703-2');
-  const existentes = new Set(['RIBASMITH-20260703', 'RIBASMITH-20260703-2']);
-  assert.equal(idFactura_('Riba Smith', '2026-07-03', existentes), 'RIBASMITH-20260703-3');
+  assert.equal(idFactura_('Whole Foods', '2026-07-03', ['WHOLEFOODS-20260703']), 'WHOLEFOODS-20260703-2');
+  const existentes = new Set(['WHOLEFOODS-20260703', 'WHOLEFOODS-20260703-2']);
+  assert.equal(idFactura_('Whole Foods', '2026-07-03', existentes), 'WHOLEFOODS-20260703-3');
 });
 
 test('idFactura_ no confunde otro proveedor u otra fecha con un duplicado', () => {
-  const existentes = ['RIBASMITH-20260704', 'RIBASMITHX-20260703'];
-  assert.equal(idFactura_('Riba Smith', '2026-07-03', existentes), 'RIBASMITH-20260703');
+  const existentes = ['WHOLEFOODS-20260704', 'WHOLEFOODSX-20260703'];
+  assert.equal(idFactura_('Whole Foods', '2026-07-03', existentes), 'WHOLEFOODS-20260703');
 });
 
 test('idFactura_ sirve para depósitos, ajustes y saldo inicial', () => {
@@ -92,7 +92,7 @@ test('idFactura_ sirve para depósitos, ajustes y saldo inicial', () => {
 test('idFactura_ rechaza proveedor vacío o fecha inválida', () => {
   assert.throws(() => idFactura_('¿?', '2026-07-03', []), /proveedor vacío/);
   for (const mala of ['2026-7-3', '03/07/2026', '2026-02-30', '2026-13-01', '', null]) {
-    assert.throws(() => idFactura_('Riba Smith', mala, []), /fecha inválida/, String(mala));
+    assert.throws(() => idFactura_('Whole Foods', mala, []), /fecha inválida/, String(mala));
   }
 });
 

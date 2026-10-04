@@ -6,7 +6,7 @@ const LARGO_MAX_PROVEEDOR = 15;
 const TOLERANCIA_CENTAVOS = 1; // 0.01
 const FORMA_FECHA = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-/** "Riba Smith" → "RIBASMITH": mayúsculas, sin tildes, solo A-Z y 0-9, máximo 15. */
+/** "Whole Foods" → "WHOLEFOODS": mayúsculas, sin tildes, solo A-Z y 0-9, máximo 15. */
 function normalizarProveedor_(texto) {
   return String(texto || '')
     .normalize('NFD')
@@ -16,7 +16,7 @@ function normalizarProveedor_(texto) {
     .slice(0, LARGO_MAX_PROVEEDOR);
 }
 
-/** "super 99" → "Super 99"; cada palabra separada por espacios con su inicial en mayúscula. */
+/** "seven 11" → "Seven 11"; cada palabra separada por espacios con su inicial en mayúscula. */
 const conMayusculaPorPalabra_ = (texto) => texto
   .split(' ')
   .map((palabra) => (palabra ? `${palabra[0].toUpperCase()}${palabra.slice(1)}` : palabra))

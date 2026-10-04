@@ -123,7 +123,7 @@ test('buscarFilas_: sin pestaña sugerida (o ya borrada) busca en todos los mese
 test('escritosAplicados_ anota la escritura local y ambos lados de un cambio de mes', () => {
   const sep = hojaFalsa('Septiembre 2026');
   const filas = [{ idFila: 'BOT-1', hoja: sep }];
-  const plan = { porFila: { 'BOT-1': { PROVEEDOR: 'Riba Smith' } } };
+  const plan = { porFila: { 'BOT-1': { PROVEEDOR: 'Whole Foods' } } };
   assert.deepEqual(escritosAplicados_(filas, plan, ''), [
     { pestana: 'Septiembre 2026', idFila: 'BOT-1', columnas: ['PROVEEDOR'] },
   ]);
@@ -204,7 +204,7 @@ test('respuesta avisa la anotación llegada durante setValue y conserva su respu
   };
   const real = console.error; const avisos = []; console.error = (x) => avisos.push(x);
   let respuesta;
-  try { respuesta = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' }, { ...opciones, registro, desde, propiedades: props }); } finally { console.error = real; }
+  try { respuesta = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' }, { ...opciones, registro, desde, propiedades: props }); } finally { console.error = real; }
   assert.equal(respuesta.texto, 'Listo, lo anoté.');
   assert.ok(avisos.includes(`posible choque con edición a mano: Septiembre 2026 ${id} PROVEEDOR`));
 });
@@ -218,22 +218,22 @@ test('fallo al releer ediciones después de responder no altera la respuesta ni 
   ediciones.getRange = () => { throw new Error('rota'); };
   const real = console.error; const avisos = []; console.error = (x) => avisos.push(x);
   let respuesta;
-  try { respuesta = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' }, { ...opciones, registro, desde: AHORA, propiedades: props }); } finally { console.error = real; }
-  assert.equal(respuesta.texto, 'Listo, lo anoté.'); assert.equal(filaDe(sep, 6).PROVEEDOR, 'Riba Smith');
+  try { respuesta = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' }, { ...opciones, registro, desde: AHORA, propiedades: props }); } finally { console.error = real; }
+  assert.equal(respuesta.texto, 'Listo, lo anoté.'); assert.equal(filaDe(sep, 6).PROVEEDOR, 'Whole Foods');
   assert.deepEqual(props.llamadas, []); assert.ok(avisos.some((x) => /no se pudieron leer encabezados/.test(x)));
 });
 
 test('aplicarRespuesta_: escribe solo las celdas que cambian y cierra la pregunta', () => {
   const { ss, sep, estado, pregunta, estadoDe } = escenario(['proveedor', 'total'], { cantidad: 2 });
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith', total: 32 }, opciones);
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods', total: 32 }, opciones);
   assert.equal(r.texto, 'Listo, lo anoté.');
   assert.equal(r.cerrada, true);
   assert.equal(estadoDe(), 'CERRADA');
   for (const n of [6, 7]) {
     const f = filaDe(sep, n);
-    assert.equal(f.PROVEEDOR, 'Riba Smith');
+    assert.equal(f.PROVEEDOR, 'Whole Foods');
     assert.equal(f['GASTO (USD)'], 32);
-    assert.equal(f['ID FACTURA'], 'RIBASMITH-20260926');
+    assert.equal(f['ID FACTURA'], 'WHOLEFOODS-20260926');
     assert.equal(f.REVISAR, 'PENDIENTE: FECHA');
   }
   assert.ok(sep.escrituras.every(([m]) => m === 'setValue'));
@@ -252,12 +252,12 @@ test('aplicarRespuesta_ (aplicarPlan_): escapa fórmulas en las columnas de text
 
 test('aplicarRespuesta_: el proveedor de la respuesta usa la ortografía del historial (Supuesto AB, punto F)', () => {
   const { ss, sep, estado, pregunta } = escenario(['proveedor']);
-  // "SUPER 99" (mayúsculas) es la del historial; sin ella, "super 99" quedaría "Super 99"
+  // "SEVEN 11" (mayúsculas) es la del historial; sin ella, "seven 11" quedaría "Seven 11"
   // (mayúscula inicial por palabra) — así se comprueba que opciones.historial sí se usó.
-  const historial = [{ proveedor: 'SUPER 99', clase: 'GROCERIES' }, { proveedor: 'SUPER 99', clase: 'GROCERIES' }];
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'super 99' }, { ...opciones, historial });
+  const historial = [{ proveedor: 'SEVEN 11', clase: 'GROCERIES' }, { proveedor: 'SEVEN 11', clase: 'GROCERIES' }];
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'seven 11' }, { ...opciones, historial });
   assert.equal(r.texto, 'Listo, lo anoté.');
-  assert.equal(filaDe(sep, 6).PROVEEDOR, 'SUPER 99');
+  assert.equal(filaDe(sep, 6).PROVEEDOR, 'SEVEN 11');
 });
 
 test('aplicarRespuesta_: "super" a la pregunta de clase escribe la etiqueta real, aunque Gemini diga PENDIENTE (defecto E2)', () => {
@@ -284,7 +284,7 @@ test('salta la columna anotada y escribe las demás de la respuesta', () => {
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith', total: 32 }, { ...opciones, registro });
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods', total: 32 }, { ...opciones, registro });
   assert.equal(r.texto, 'Listo, lo anoté. Anoté lo demás, pero no cambié PROVEEDOR: la editaron a mano en la hoja.');
   assert.equal(filaDe(sep, 6).PROVEEDOR, 'PENDIENTE');
   assert.equal(filaDe(sep, 6)['GASTO (USD)'], 32);
@@ -297,7 +297,7 @@ test('si todo quedó anotado no dice "Anoté" y cierra la pregunta', () => {
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' }, { ...opciones, registro });
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' }, { ...opciones, registro });
   assert.equal(r.texto, 'No cambié PROVEEDOR: la editaron a mano en la hoja.');
   assert.equal(r.cerrada, true);
   assert.equal(estadoDe(), 'CERRADA');
@@ -312,7 +312,7 @@ test('una anotación avisa aunque la hoja ya difiera de lo que el bot escribió'
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' }, { ...opciones, registro });
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' }, { ...opciones, registro });
   assert.equal(r.texto, 'No cambié PROVEEDOR: la editaron a mano en la hoja.');
   assert.equal(filaDe(sep, 6).PROVEEDOR, 'Manual');
 });
@@ -328,7 +328,7 @@ test('proveedor protegido no altera ID FACTURA ni REVISAR al escribir clase', ()
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
-  aplicarRespuesta_(ss, estado, conRevisar, { proveedor: 'Riba Smith', clase: 'GROCERIES' }, { ...opciones, registro });
+  aplicarRespuesta_(ss, estado, conRevisar, { proveedor: 'Whole Foods', clase: 'GROCERIES' }, { ...opciones, registro });
   assert.equal(filaDe(sep, 6)['CLASE DE GASTO'], 'GROCERIES');
   assert.equal(filaDe(sep, 6)['ID FACTURA'], 'PENDIENTE-20260926');
   assert.equal(filaDe(sep, 6).REVISAR, 'PENDIENTE: PROVEEDOR, CLASE');
@@ -340,7 +340,7 @@ test('fecha permitida no calcula ID FACTURA con proveedor protegido', () => {
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
-  aplicarRespuesta_(ss, estado, pregunta, { fecha: '2026-09-27', proveedor: 'Riba Smith' }, { ...opciones, registro });
+  aplicarRespuesta_(ss, estado, pregunta, { fecha: '2026-09-27', proveedor: 'Whole Foods' }, { ...opciones, registro });
   assert.equal(filaDe(sep, 6).FECHA, '2026-09-27');
   assert.equal(filaDe(sep, 6).PROVEEDOR, 'PENDIENTE');
   assert.equal(filaDe(sep, 6)['ID FACTURA'], 'PENDIENTE-20260927');
@@ -363,8 +363,8 @@ test('ID FACTURA anotado no cambia al contestar proveedor', () => {
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'ID FACTURA']], corte: '20260926-000000', disponible: true,
   });
-  aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' }, { ...opciones, registro });
-  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Riba Smith');
+  aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' }, { ...opciones, registro });
+  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Whole Foods');
   assert.equal(filaDe(sep, 6)['ID FACTURA'], 'PENDIENTE-20260926');
 });
 
@@ -374,7 +374,7 @@ test('una columna saltada cuenta contestada y no entra como escrita al reabrir',
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith', total: null }, { ...opciones, registro });
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods', total: null }, { ...opciones, registro });
   assert.equal(r.cerrada, false);
   assert.deepEqual(leerPregunta()[0].preguntas, ['total']);
   assert.equal(leerPregunta()[0].escrito[id].PROVEEDOR, 'PENDIENTE');
@@ -413,7 +413,7 @@ test('varias filas ya corregidas a mano no repiten el mismo aviso', () => {
   const { ss, sep, estado, pregunta } = escenario(['proveedor'], { cantidad: 2 });
   ponerFila(sep, 6, { PROVEEDOR: 'Manual' });
   ponerFila(sep, 7, { PROVEEDOR: 'Manual' });
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' }, opciones);
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' }, opciones);
   assert.equal((r.texto.match(/Ya lo corregiste/g) || []).length, 1);
 });
 
@@ -440,12 +440,12 @@ test('aplicarRespuesta_: fecha de otro mes mueve la fila (limpia la vieja sin to
 
 test('aplicarRespuesta_: respuesta parcial deja la pregunta abierta con lo que falta', () => {
   const { ss, sep, estado, pregunta, leerPregunta, estadoDe } = escenario(['proveedor', 'total']);
-  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith', total: null }, opciones);
+  const r = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods', total: null }, opciones);
   assert.equal(r.cerrada, false);
   assert.equal(r.texto, 'Listo, lo anoté. ¿Me dices el total de la factura?');
   assert.equal(estadoDe(), 'ABIERTA');
   assert.deepEqual(leerPregunta()[0].preguntas, ['total']);
-  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Whole Foods');
 });
 
 test('aplicarRespuesta_: si no vino nada útil, vuelve a preguntar sin cambiar nada', () => {
@@ -521,11 +521,11 @@ test('si armar los escritos falla, la respuesta y la escritura no cambian', () =
   const real = console.error; const avisos = []; console.error = (x) => avisos.push(x);
   let respuesta;
   try {
-    respuesta = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' },
+    respuesta = aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' },
       { ...opciones, desde: AHORA, propiedades: props });
   } finally { console.error = real; }
   assert.equal(respuesta.texto, 'Listo, lo anoté.');
-  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Whole Foods');
   assert.ok(avisos.includes('_EDICIONES: no se pudo revisar choques: sin nombre'));
 });
 
@@ -538,11 +538,11 @@ test('mover a un mes sin pestaña cuenta ID FACTURA en ese mes, no en el de orig
 
 test('aplicarRespuesta_: tras una respuesta parcial, la siguiente sigue actualizando ID FACTURA', () => {
   const { ss, sep, estado, pregunta, leerPregunta, estadoDe } = escenario(['proveedor', 'fecha']);
-  aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Riba Smith' }, opciones);
-  assert.equal(filaDe(sep, 6)['ID FACTURA'], 'RIBASMITH-20260926');
+  aplicarRespuesta_(ss, estado, pregunta, { proveedor: 'Whole Foods' }, opciones);
+  assert.equal(filaDe(sep, 6)['ID FACTURA'], 'WHOLEFOODS-20260926');
   const r = aplicarRespuesta_(ss, estado, leerPregunta()[0], { fecha: '2026-09-20' }, opciones);
   assert.equal(r.texto, 'Listo, lo anoté.');
-  assert.equal(filaDe(sep, 6)['ID FACTURA'], 'RIBASMITH-20260920');
+  assert.equal(filaDe(sep, 6)['ID FACTURA'], 'WHOLEFOODS-20260920');
   assert.equal(filaDe(sep, 6).REVISAR, 'PENDIENTE: TOTAL (partes suman 15.00)');
   assert.equal(estadoDe(), 'CERRADA');
 });

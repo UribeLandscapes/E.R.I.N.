@@ -67,7 +67,7 @@ const AHORA = new Date(2026, 8, 27, 9, 30, 0);
 const SELLO = '20260927-093000';
 const CHAT = 1000000001;
 const ID_ERIN = 501;
-const TEXTO_RECIBO = ['SUPER 99, S.A.', 'RUC 155646463-2-2017', 'Pan', '3.25', 'TOTAL  B/. 66.34'].join('\n');
+const TEXTO_RECIBO = ['SEVEN 11, S.A.', 'RUC 1234567-1-2020', 'Pan', '3.25', 'TOTAL  B/. 66.34'].join('\n');
 
 const dos = (n) => String(n).padStart(2, '0');
 function formatear(fecha, formato) {
@@ -179,7 +179,7 @@ test('llenarFilas_ no pisa PENDIENTE ni REVISAR anotados', () => {
   const registro = registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR|REVISAR']], corte: '20260926-000000', disponible: true,
   });
-  const [llena] = llenarFilas_([{ hoja, numero: 6, idFila: id, valores }], { PROVEEDOR: 'Riba Smith' }, true, registro);
+  const [llena] = llenarFilas_([{ hoja, numero: 6, idFila: id, valores }], { PROVEEDOR: 'Whole Foods' }, true, registro);
   assert.deepEqual(llena.saltadas.sort(), ['PROVEEDOR', 'REVISAR']);
   assert.equal(filaDe(hoja, 6).PROVEEDOR, 'PENDIENTE');
   assert.equal(filaDe(hoja, 6).REVISAR, '');
@@ -197,7 +197,7 @@ test('llenarFilas_ conserva la marca del proveedor protegido y escribe la clase 
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
   llenarFilas_([{ hoja, numero: 6, idFila: id, valores }], {
-    PROVEEDOR: 'Riba Smith', 'CLASE DE GASTO': 'GROCERIES W1 NORTE',
+    PROVEEDOR: 'Whole Foods', 'CLASE DE GASTO': 'GROCERIES W1 NORTE',
   }, false, registro);
   assert.equal(filaDe(hoja, 6).PROVEEDOR, 'PENDIENTE');
   assert.equal(filaDe(hoja, 6)['CLASE DE GASTO'], 'GROCERIES W1 NORTE');
@@ -209,7 +209,7 @@ test('llenarFilas_ no escribe con registro perdido ni con ID anterior al corte',
     const hoja = hojaFalsa('Septiembre 2026');
     const valores = { PROVEEDOR: 'PENDIENTE', 'ID FILA': id };
     ponerFila(hoja, 6, valores);
-    const [llena] = llenarFilas_([{ hoja, numero: 6, idFila: id, valores }], { PROVEEDOR: 'Riba Smith' }, false, registro);
+    const [llena] = llenarFilas_([{ hoja, numero: 6, idFila: id, valores }], { PROVEEDOR: 'Whole Foods' }, false, registro);
     assert.deepEqual(llena.saltadas, ['PROVEEDOR']);
     assert.equal(filaDe(hoja, 6).PROVEEDOR, 'PENDIENTE');
   };
@@ -278,7 +278,7 @@ test('releerConGemini_ con claveGroq: Gemini caído (500) y Groq (jpeg) lee la f
   const archivo = archivoDeReintento_(raiz);
   const d = dependencias(null, raiz, { claveGroq: CLAVE_GROQ });
   const datosGroq = {
-    legible: true, tipo_documento: 'TICKET', proveedor: 'Super 99', fecha: '2026-09-20',
+    legible: true, tipo_documento: 'TICKET', proveedor: 'Seven 11', fecha: '2026-09-20',
     moneda: 'USD', forma_pago: 'EFECTIVO', lineas: [{ tipo: 'ITEM', descripcion: 'Leche', monto: 1.55, confianza: 'ALTA' }],
     total: 1.55, clase: 'GROCERIES', casa: null, comentario: null, descripcion_corta: 'leche',
     confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
@@ -291,7 +291,7 @@ test('releerConGemini_ con claveGroq: Gemini caído (500) y Groq (jpeg) lee la f
   const entrada = { idFoto: archivo.getId(), leyenda: '', fechaMensaje: '2026-09-27' };
   const leido = releerConGemini_(d, entrada, { categorias: ['GROCERIES'] });
   assert.equal(leido.ok, true);
-  assert.equal(leido.datos.proveedor, 'Super 99');
+  assert.equal(leido.datos.proveedor, 'Seven 11');
   assert.equal(leido.archivo, archivo);
 });
 
@@ -304,9 +304,9 @@ test('releerConGemini_ con claveGroq: un PDF usa el OCR de Drive (deps.carpetaFa
     ocr: (blob, raizOcr) => { raizUsadaEnOcr = raizOcr; return { ok: true, texto: TEXTO_RECIBO }; },
   });
   const datosGroq = {
-    legible: true, tipo_documento: 'TICKET', proveedor: 'Super 99', fecha: '2026-09-20',
+    legible: true, tipo_documento: 'TICKET', proveedor: 'Seven 11', fecha: '2026-09-20',
     moneda: 'USD', forma_pago: 'EFECTIVO', lineas: [], total: 66.34, clase: 'GROCERIES', casa: null,
-    comentario: null, descripcion_corta: 'super 99', confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
+    comentario: null, descripcion_corta: 'seven 11', confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
   };
   global.UrlFetchApp = {
     fetch: (url) => (url === URL_GROQ
@@ -340,7 +340,7 @@ test('releerConGemini_ con claveGroq: si Groq también falla se rinde con el mot
 const datosFoto = (extra = {}) => ({
   legible: true,
   tipo_documento: 'TICKET',
-  proveedor: 'Riba Smith',
+  proveedor: 'Whole Foods',
   fecha: '2026-09-27',
   moneda: 'USD',
   forma_pago: 'EFECTIVO',
@@ -349,7 +349,7 @@ const datosFoto = (extra = {}) => ({
   clase: 'Supermercado',
   casa: null,
   comentario: null,
-  descripcion_corta: 'super riba smith',
+  descripcion_corta: 'super whole foods',
   confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
   ...extra,
 });
@@ -431,7 +431,7 @@ test('el reintento llena los campos PENDIENTE sin tocar el total confirmado', ()
   ponerGemini(datosFoto());
   reintentarPorProcesar_(caso.d, caso.estado);
   const fila = filaDe(caso.sep, 7);
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
   assert.equal(fila['FORMA DE PAGO'], 'EFECTIVO');
   assert.notEqual(fila['CLASE DE GASTO'], 'PENDIENTE');
   assert.equal(fila['GASTO (USD)'], 66.34);
@@ -452,7 +452,7 @@ test('el reintento le pone su nombre real a la foto en Drive', () => {
   const caso = conTotalConfirmado();
   ponerGemini(datosFoto());
   reintentarPorProcesar_(caso.d, caso.estado);
-  assert.match(archivosDe(caso.raiz).join('\n'), /Riba Smith/i);
+  assert.match(archivosDe(caso.raiz).join('\n'), /Whole Foods/i);
 });
 
 test('el reintento renombra la foto aunque la hoja devuelva FECHA como Date (Google Sheets real)', () => {
@@ -463,7 +463,7 @@ test('el reintento renombra la foto aunque la hoja devuelva FECHA como Date (Goo
   ponerGemini(datosFoto());
   reintentarPorProcesar_(caso.d, caso.estado);
   const archivos = archivosDe(caso.raiz).join('\n');
-  assert.match(archivos, /Riba Smith/i);
+  assert.match(archivos, /Whole Foods/i);
   assert.doesNotMatch(archivos, /Por clasificar/i);
 });
 
@@ -474,16 +474,16 @@ test('si el total de Gemini no es el confirmado se marca PENDIENTE: TOTAL, sin s
   const fila = filaDe(caso.sep, 7);
   assert.equal(fila['GASTO (USD)'], 66.34);
   assert.equal(fila.REVISAR, 'PENDIENTE: TOTAL');
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
 });
 
 test('el reintento no pisa lo que el usuario ya había contestado', () => {
   const caso = conTotalConfirmado();
-  ponerFila(caso.sep, 7, { PROVEEDOR: 'Super 99', 'FORMA DE PAGO': 'TARJETA' });
+  ponerFila(caso.sep, 7, { PROVEEDOR: 'Seven 11', 'FORMA DE PAGO': 'TARJETA' });
   ponerGemini(datosFoto());
   reintentarPorProcesar_(caso.d, caso.estado);
   const fila = filaDe(caso.sep, 7);
-  assert.equal(fila.PROVEEDOR, 'Super 99');
+  assert.equal(fila.PROVEEDOR, 'Seven 11');
   assert.equal(fila['FORMA DE PAGO'], 'TARJETA');
 });
 
@@ -505,8 +505,8 @@ test('sin total confirmado, el reintento escribe la fila por el camino normal y 
   const lineas = reintentarPorProcesar_(caso.d, caso.estado);
   const fila = filaDe(caso.sep, 7);
   assert.equal(fila['GASTO (USD)'], 66.34);
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
-  assert.match(textosEnviados(caso.d).join('\n'), /Riba Smith/);
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
+  assert.match(textosEnviados(caso.d).join('\n'), /Whole Foods/);
   assert.match(lineas[0], /escribió/);
 });
 
@@ -692,7 +692,7 @@ test('con el proveedor todavía pendiente, la forma de pago no cierra la entrada
 test('tocar la forma de pago dos veces no la vuelve a escribir y avisa que ya está atendida', () => {
   const caso = enModoPreguntas();
   atenderBoton_(toquePago('transferencia'), caso.d, caso.estado);
-  ponerFila(caso.sep, 7, { PROVEEDOR: 'Riba Smith' });
+  ponerFila(caso.sep, 7, { PROVEEDOR: 'Whole Foods' });
   atenderBoton_(toquePago('efectivo'), caso.d, caso.estado);
   assert.equal(filaDe(caso.sep, 7)['FORMA DE PAGO'], 'TRANSFERENCIA');
 });
@@ -715,18 +715,18 @@ test('un callback_data de forma de pago con clave rara solo contesta el toque', 
 
 // --- Modo preguntas: el proveedor escrito ---
 
-const HISTORIAL_RIBA = [
-  { FECHA: '2026-08-01', PROVEEDOR: 'Riba Smith', 'CLASE DE GASTO': 'GROCERIES W1 NORTE' },
-  { FECHA: '2026-08-10', PROVEEDOR: 'Riba Smith', 'CLASE DE GASTO': 'GROCERIES W2 NORTE' },
+const HISTORIAL_WHOLEFOODS = [
+  { FECHA: '2026-08-01', PROVEEDOR: 'Whole Foods', 'CLASE DE GASTO': 'GROCERIES W1 NORTE' },
+  { FECHA: '2026-08-10', PROVEEDOR: 'Whole Foods', 'CLASE DE GASTO': 'GROCERIES W2 NORTE' },
 ];
 
 test('el proveedor que el usuario escribe se anota en la fila, con su clase dominante', () => {
-  const caso = enModoPreguntas(HISTORIAL_RIBA);
-  atenderMensaje_(mensajeTexto('riba smith'), caso.d, caso.estado);
+  const caso = enModoPreguntas(HISTORIAL_WHOLEFOODS);
+  atenderMensaje_(mensajeTexto('whole foods'), caso.d, caso.estado);
   const fila = filaDe(caso.sep, 7);
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
   assert.match(String(fila['CLASE DE GASTO']), /^GROCERIES W\d NORTE$/);
-  assert.equal(textosEnviados(caso.d).pop(), 'Listo, anoté el proveedor: Riba Smith.');
+  assert.equal(textosEnviados(caso.d).pop(), 'Listo, anoté el proveedor: Whole Foods.');
 });
 
 test('sin historial dominante la clase se queda en PENDIENTE', () => {
@@ -739,24 +739,24 @@ test('sin historial dominante la clase se queda en PENDIENTE', () => {
 
 test('el proveedor escrito le pone su nombre a la foto en Drive', () => {
   const caso = enModoPreguntas();
-  atenderMensaje_(mensajeTexto('Riba Smith'), caso.d, caso.estado);
-  assert.match(archivosDe(caso.raiz).join('\n'), /Riba Smith/i);
+  atenderMensaje_(mensajeTexto('Whole Foods'), caso.d, caso.estado);
+  assert.match(archivosDe(caso.raiz).join('\n'), /Whole Foods/i);
 });
 
 test('el proveedor escrito renombra la foto aunque la hoja devuelva FECHA como Date', () => {
   const caso = enModoPreguntas();
   ponerFila(caso.sep, 7, { FECHA: new Date(2026, 8, 27) });
   assert.ok(filaDe(caso.sep, 7).FECHA instanceof Date);
-  atenderMensaje_(mensajeTexto('Riba Smith'), caso.d, caso.estado);
+  atenderMensaje_(mensajeTexto('Whole Foods'), caso.d, caso.estado);
   const archivos = archivosDe(caso.raiz).join('\n');
-  assert.match(archivos, /Riba Smith/i);
+  assert.match(archivos, /Whole Foods/i);
   assert.doesNotMatch(archivos, /Por clasificar/i);
 });
 
 test('cuando ya no falta nada, la respuesta del proveedor cierra la entrada', () => {
   const caso = enModoPreguntas();
   atenderBoton_(toquePago('efectivo'), caso.d, caso.estado);
-  atenderMensaje_(mensajeTexto('Riba Smith'), caso.d, caso.estado);
+  atenderMensaje_(mensajeTexto('Whole Foods'), caso.d, caso.estado);
   assert.equal(celdaEstado(caso.estado, 2, 'ESTADO'), PREGUNTA_CERRADA);
 });
 
@@ -831,7 +831,7 @@ test('proveedor protegido y PENDIENTE no se pisa ni se renombra', () => {
   global.registroParaEscribir_ = () => registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
-  try { atenderMensaje_(mensajeTexto('Riba Smith'), caso.d, caso.estado); } finally { global.registroParaEscribir_ = leer; }
+  try { atenderMensaje_(mensajeTexto('Whole Foods'), caso.d, caso.estado); } finally { global.registroParaEscribir_ = leer; }
   assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'PENDIENTE');
   assert.deepEqual(archivosDe(caso.raiz), antes);
   assert.equal(textosEnviados(caso.d).pop(), textoNadaCambiado_(['PROVEEDOR']));
@@ -849,37 +849,37 @@ test('un proveedor que ya no era PENDIENTE no se pisa, no se avisa como anotado 
     filas: [[AHORA, 'Septiembre 2026', id, 'PROVEEDOR']], corte: '20260926-000000', disponible: true,
   });
   console.log = (linea) => lineas.push(linea);
-  try { atenderMensaje_(mensajeTexto('Riba Smith'), caso.d, caso.estado); } finally {
+  try { atenderMensaje_(mensajeTexto('Whole Foods'), caso.d, caso.estado); } finally {
     console.log = log;
     global.registroParaEscribir_ = leer;
   }
   assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Proveedor manual');
   assert.deepEqual(archivosDe(caso.raiz), antes);
-  assert.ok(!textosEnviados(caso.d).includes(textoProveedorAnotado_('Riba Smith')));
+  assert.ok(!textosEnviados(caso.d).includes(textoProveedorAnotado_('Whole Foods')));
   assert.ok(!textosEnviados(caso.d).includes(textoNadaCambiado_(['PROVEEDOR'])));
   assert.deepEqual(lineas.filter((linea) => linea.includes('editadas a mano')), []);
 });
 
 test('proveedor libre y clase protegida escriben solo el proveedor y avisan ambos resultados', () => {
-  const caso = enModoPreguntas(HISTORIAL_RIBA);
+  const caso = enModoPreguntas(HISTORIAL_WHOLEFOODS);
   const id = filaDe(caso.sep, 7)['ID FILA'];
   const leer = global.registroParaEscribir_;
   global.registroParaEscribir_ = () => registroEdiciones_({
     filas: [[AHORA, 'Septiembre 2026', id, 'CLASE DE GASTO']], corte: '20260926-000000', disponible: true,
   });
-  try { atenderMensaje_(mensajeTexto('Riba Smith'), caso.d, caso.estado); } finally { global.registroParaEscribir_ = leer; }
-  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+  try { atenderMensaje_(mensajeTexto('Whole Foods'), caso.d, caso.estado); } finally { global.registroParaEscribir_ = leer; }
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Whole Foods');
   assert.equal(filaDe(caso.sep, 7)['CLASE DE GASTO'], 'PENDIENTE');
-  assert.match(archivosDe(caso.raiz).join('\n'), /Riba Smith/i);
-  assert.equal(textosEnviados(caso.d).pop(), `${textoProveedorAnotado_('Riba Smith')}\n${textoColumnasSaltadas_(['CLASE DE GASTO'])}`);
+  assert.match(archivosDe(caso.raiz).join('\n'), /Whole Foods/i);
+  assert.equal(textosEnviados(caso.d).pop(), `${textoProveedorAnotado_('Whole Foods')}\n${textoColumnasSaltadas_(['CLASE DE GASTO'])}`);
 });
 
 test('el proveedor citando la pregunta del bot también contesta esa foto', () => {
   const caso = enModoPreguntas();
   const idPregunta = datosEstado(caso.estado, 2).idProveedor;
   assert.ok(idPregunta);
-  atenderMensaje_(mensajeTexto('Riba Smith', { reply_to_message: { message_id: idPregunta } }), caso.d, caso.estado);
-  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+  atenderMensaje_(mensajeTexto('Whole Foods', { reply_to_message: { message_id: idPregunta } }), caso.d, caso.estado);
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Whole Foods');
 });
 
 test('un texto que parece un gasto nuevo no se toma como proveedor', () => {
@@ -892,13 +892,13 @@ test('un texto que parece un gasto nuevo no se toma como proveedor', () => {
 test('sin pregunta de proveedor abierta, un nombre suelto sigue el camino normal', () => {
   const caso = conTotalConfirmado();
   assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: null },
-    mensajeTexto('Riba Smith'), 'Riba Smith'), false);
+    mensajeTexto('Whole Foods'), 'Whole Foods'), false);
 });
 
 test('un proveedor citando otro mensaje cualquiera no contesta la pregunta', () => {
   const caso = enModoPreguntas();
   assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: null },
-    mensajeTexto('Riba Smith', { reply_to_message: { message_id: 12345 } }), 'Riba Smith'), false);
+    mensajeTexto('Whole Foods', { reply_to_message: { message_id: 12345 } }), 'Whole Foods'), false);
 });
 
 test('con una pregunta abierta más nueva, el nombre suelto sigue el camino normal', () => {
@@ -908,7 +908,7 @@ test('con una pregunta abierta más nueva, el nombre suelto sigue el camino norm
     DATOS: '{"preguntas":["clase"]}', ESTADO: PREGUNTA_ABIERTA,
   }[c] || '')));
   assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: null },
-    mensajeTexto('Riba Smith'), 'Riba Smith'), false);
+    mensajeTexto('Whole Foods'), 'Whole Foods'), false);
 });
 
 test('con dos preguntas de proveedor abiertas y sin cita, el nombre suelto va a la más nueva (elegirPreguntaProveedor_)', () => {
@@ -923,17 +923,17 @@ test('con dos preguntas de proveedor abiertas y sin cita, el nombre suelto va a 
     ESTADO: PREGUNTA_ABIERTA,
   }[c] || '')));
   const r = atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: { chatId: CHAT } },
-    mensajeTexto('Riba Smith'), 'Riba Smith');
+    mensajeTexto('Whole Foods'), 'Whole Foods');
   assert.equal(r, true);
   // La entrada de enModoPreguntas (creada "AHORA") es más nueva que la agregada (20 de sep) → gana esa.
-  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Whole Foods');
 });
 
 test('si la fila de la foto ya no está en la hoja, el proveedor escrito sigue su camino', () => {
   const caso = enModoPreguntas();
   ponerFila(caso.sep, 7, { 'ID FILA': '' });
   assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: null },
-    mensajeTexto('Riba Smith'), 'Riba Smith'), false);
+    mensajeTexto('Whole Foods'), 'Whole Foods'), false);
 });
 
 // --- Bordes: Drive y _ESTADO fallando ---
@@ -950,8 +950,8 @@ test('si Drive no deja renombrar la foto, la fila igual queda escrita', () => {
   const caso = enModoPreguntas();
   const d = { ...caso.d, archivoPorId: () => { throw new Error('Drive caído'); } };
   atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: d, momento: { chatId: CHAT } },
-    mensajeTexto('Riba Smith'), 'Riba Smith');
-  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+    mensajeTexto('Whole Foods'), 'Whole Foods');
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Whole Foods');
 });
 
 test('unos DATOS ilegibles no rompen el conteo de intentos (solo se registran)', () => {
@@ -963,7 +963,7 @@ test('unos DATOS ilegibles no rompen el conteo de intentos (solo se registran)',
 
 test('si ya no falta nada, el modo preguntas solo cierra la entrada', () => {
   const caso = conTotalConfirmado();
-  ponerFila(caso.sep, 7, { PROVEEDOR: 'Riba Smith', 'FORMA DE PAGO': 'EFECTIVO' });
+  ponerFila(caso.sep, 7, { PROVEEDOR: 'Whole Foods', 'FORMA DE PAGO': 'EFECTIVO' });
   reintentarPorProcesar_(caso.d, caso.estado);
   const lineas = reintentarPorProcesar_(caso.d, caso.estado);
   assert.match(lineas[0], /ya no falta nada/);
@@ -1065,7 +1065,7 @@ test('el reintento que llena los pendientes pone proveedor, clase y pago en el R
   ponerGemini(datosFoto());
   reintentarPorProcesar_(caso.d, caso.estado);
   const datos = datosRegistro(caso.estado);
-  assert.equal(datos.proveedor, 'Riba Smith');
+  assert.equal(datos.proveedor, 'Whole Foods');
   assert.equal(datos.forma_pago, 'EFECTIVO');
   assert.equal(datos.clase, filaDe(caso.sep, 7)['CLASE DE GASTO']);
 });
@@ -1077,10 +1077,10 @@ test('la forma de pago tocada se guarda en el REGISTRO de la confirmación', () 
 });
 
 test('el proveedor escrito y su clase se guardan en el REGISTRO de la confirmación', () => {
-  const caso = enModoPreguntas(HISTORIAL_RIBA);
-  atenderMensaje_(mensajeTexto('riba smith'), caso.d, caso.estado);
+  const caso = enModoPreguntas(HISTORIAL_WHOLEFOODS);
+  atenderMensaje_(mensajeTexto('whole foods'), caso.d, caso.estado);
   const datos = datosRegistro(caso.estado);
-  assert.equal(datos.proveedor, 'Riba Smith');
+  assert.equal(datos.proveedor, 'Whole Foods');
   assert.equal(datos.clase, filaDe(caso.sep, 7)['CLASE DE GASTO']);
 });
 
@@ -1104,9 +1104,9 @@ test('el proveedor escrito sin cita llega aunque confirmar el total dejara un RE
   assert.ok(new Date(registros[0][COLUMNAS_ESTADO.indexOf('CREADO')]).getTime() > AHORA.getTime());
   caso.d.llamadas.length = 0;
   const atendido = atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: { chatId: CHAT } },
-    mensajeTexto('Riba Smith'), 'Riba Smith');
+    mensajeTexto('Whole Foods'), 'Whole Foods');
   assert.equal(atendido, true);
-  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Whole Foods');
 });
 
 test('un BORRAR abierto más nuevo sigue frenando el proveedor escrito sin cita', () => {
@@ -1116,19 +1116,19 @@ test('un BORRAR abierto más nuevo sigue frenando el proveedor escrito sin cita'
     DATOS: '{"clave":"555"}', ESTADO: PREGUNTA_ABIERTA,
   }[c] || '')));
   assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: null },
-    mensajeTexto('Riba Smith'), 'Riba Smith'), false);
+    mensajeTexto('Whole Foods'), 'Whole Foods'), false);
   assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'PENDIENTE');
 });
 
 test('repetir el proveedor cuando ya está lleno no lo pisa, no avisa "anotado" y sigue el camino normal', () => {
   const caso = enModoPreguntas();
   assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: { chatId: CHAT } },
-    mensajeTexto('Riba Smith'), 'Riba Smith'), true);
+    mensajeTexto('Whole Foods'), 'Whole Foods'), true);
   assert.equal(celdaEstado(caso.estado, 2, 'ESTADO'), PREGUNTA_ABIERTA);
   caso.d.llamadas.length = 0;
   const atendido = atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: { chatId: CHAT } },
     mensajeTexto('Otro Super'), 'Otro Super');
   assert.equal(atendido, false);
-  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Whole Foods');
   assert.deepEqual(textosEnviados(caso.d), []);
 });

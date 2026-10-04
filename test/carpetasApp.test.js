@@ -125,12 +125,12 @@ test('archivarFoto_ rechaza un id de mensaje vacío', () => {
 test('clasificarFoto_ mueve y renombra la foto a AAAA/N. Mes', () => {
   const raiz = carpetaFalsa('Facturas');
   const archivo = archivarFoto_(blobFalso('a.jpg', 'image/jpeg'), 7, raiz);
-  const resultado = clasificarFoto_(archivo, '2026-07-03', 'Super 99 compra', raiz);
+  const resultado = clasificarFoto_(archivo, '2026-07-03', 'Seven 11 compra', raiz);
   const julio = hija(hija(raiz, '2026'), '7. Julio');
   assert.equal(archivo.carpeta, julio);
-  assert.equal(archivo.nombre, '2026.07.03 - Super 99 compra.jpg');
+  assert.equal(archivo.nombre, '2026.07.03 - Seven 11 compra.jpg');
   assert.deepEqual(resultado, {
-    ruta: 'Facturas/2026/7. Julio/2026.07.03 - Super 99 compra.jpg', url: `https://drive/${archivo.id}`,
+    ruta: 'Facturas/2026/7. Julio/2026.07.03 - Seven 11 compra.jpg', url: `https://drive/${archivo.id}`,
   });
   assert.deepEqual(hija(raiz, CARPETA_POR_CLASIFICAR).archivos, []);
 });

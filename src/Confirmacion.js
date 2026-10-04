@@ -8,7 +8,7 @@
 // Cierre fijo aprobado: cómo corregir y cómo borrar, siempre con las mismas palabras.
 const TEXTO_CIERRE_CONFIRMACION = [
   '¿Algo está mal? Respóndeme a este mensaje con el cambio, por ejemplo:',
-  '"la forma de pago es tarjeta", "el proveedor es Super 99", "comentario: para la fiesta".',
+  '"la forma de pago es tarjeta", "el proveedor es Seven 11", "comentario: para la fiesta".',
   'Si no debí anotarlo, respóndeme "borrar".',
 ].join('\n');
 // Ajuste (c): "(falta)" solo en lo que el bot necesita y va a preguntar.

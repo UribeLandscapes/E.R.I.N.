@@ -31,7 +31,7 @@ test('con la fila escrita, PROVEEDOR y FORMA DE PAGO en PENDIENTE son lo que fal
 });
 
 test('la clase sola en PENDIENTE no se pregunta (sale del proveedor o se edita en la hoja)', () => {
-  const valores = { PROVEEDOR: 'Riba Smith', 'FORMA DE PAGO': 'EFECTIVO', 'CLASE DE GASTO': 'PENDIENTE' };
+  const valores = { PROVEEDOR: 'Whole Foods', 'FORMA DE PAGO': 'EFECTIVO', 'CLASE DE GASTO': 'PENDIENTE' };
   assert.deepEqual(pendientesPorProcesar_(entradaCon(), valores), []);
 });
 
@@ -52,13 +52,13 @@ test('porPreguntar_ deja fuera lo que ya se preguntó una vez', () => {
 // --- El texto que contesta "¿A quién le pagaste en esa foto?" ---
 
 test('un nombre de comercio sirve como respuesta de proveedor', () => {
-  ['Riba Smith', 'super 99', 'Farmacia Arrocha  '].forEach((texto) => {
+  ['Whole Foods', 'seven 11', 'Farmacia Arrocha  '].forEach((texto) => {
     assert.equal(pareceProveedorEscrito_(texto), true, texto);
   });
 });
 
 test('un texto que trae un monto o una moneda es un gasto nuevo, no un proveedor', () => {
-  ['gasté 12.50 en el super', '66.34', 'B/. 20 en Riba', '$15 super'].forEach((texto) => {
+  ['gasté 12.50 en el super', '66.34', 'B/. 20 en Whole Foods', '$15 super'].forEach((texto) => {
     assert.equal(pareceProveedorEscrito_(texto), false, texto);
   });
 });
