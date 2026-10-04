@@ -483,7 +483,7 @@ function atenderRespuesta_(entorno, mensaje, datos) {
   };
   opciones.desde = deps.ahora();
   opciones.propiedades = deps.propiedades;
-  opciones.registro = registroParaEscribir_(ss, deps);
+  opciones.registro = registroParaEscribir_(ss, deps, momento.sello);
   const aplicada = aplicarRespuesta_(ss, hojaEstado, pregunta, datos, opciones);
   // El REGISTRO de esas filas guarda los datos de cuando se anotaron: se pone al día con lo contestado.
   if (aplicada.porFila) sincronizarRegistros_(hojaEstado, pregunta.idFilas, aplicada.porFila);

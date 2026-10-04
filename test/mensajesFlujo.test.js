@@ -49,6 +49,7 @@ Object.assign(global, require('../src/Duplicado.js'));
 Object.assign(global, require('../src/DuplicadoApp.js'));
 
 const { atenderMensaje_, atenderBoton_ } = require('../src/MensajesApp.js');
+const edicionesReal = require('../src/EdicionesApp.js');
 const { COLUMNAS_ESTADO } = require('../src/Hoja.js');
 const { TEXTO_GEMINI_FALLO, TEXTO_SOLO_TEXTO, TEXTO_SIN_PREGUNTA, esAcuse_, fraseAnimo_ } = require('../src/Mensajes.js');
 const { textoGuia_ } = require('../src/Texto.js');
@@ -266,6 +267,42 @@ test('atenderMensaje_ responde la contestación de una pregunta de monto y regis
   assert.equal(fila['ID MENSAJE TG'], 55);
   assert.equal(fila.FECHA, '2026-09-26');
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
+});
+
+test('instalación nueva: el primer gasto escrito al contestar el monto no queda protegido por el corte', () => {
+  const { ss, sep, estado } = escenario();
+  guardarPregunta_(estado, preguntaEstado_({
+    creado: AHORA, clave: 901, preguntas: ['monto'], filas: [], pestana: '',
+    extra: {
+      datos: datosGemini({ intencion: 'GASTO', proveedor: 'Taxi', fecha: '2026-09-26', clase: 'GROCERIES' }),
+      fechaMensaje: '2026-09-26', idMensaje: 55,
+    },
+  }));
+  ponerGemini(datosGemini({ intencion: 'RESPUESTA', total: 12.5 }));
+  const datos = {};
+  const propiedades = {
+    getProperty: (nombre) => datos[nombre] || null,
+    setProperty: (nombre, valor) => { datos[nombre] = valor; },
+    deleteProperty: (nombre) => { delete datos[nombre]; },
+  };
+  // El reloj de arranque va DESPUÉS del sello de la fila: antes eso protegía la fila del propio bot.
+  const d = dependencias(ss, { propiedades, sello: () => '20260927-093005' });
+  const crear = global.crearPestanaOculta_;
+  global.crearPestanaOculta_ = (libro, nombre, columnas) => {
+    libro.hojas.push(hojaFalsa(nombre, { protegerDesborde: false }));
+    libro.hojas[libro.hojas.length - 1].appendRow([...columnas]);
+  };
+  global.registroParaEscribir_ = edicionesReal.registroParaEscribir_;
+  try {
+    atenderMensaje_(mensaje('12.50', { reply_to_message: { message_id: 901 } }), d, estado);
+  } finally {
+    global.crearPestanaOculta_ = crear;
+    global.registroParaEscribir_ = () => ({ disponible: true, corte: '20260926-000000', porId: new Map() });
+  }
+  assert.equal(filaDe(sep, 8)['GASTO (USD)'], 12.5);
+  const registro = registroEdiciones_({ filas: [], corte: datos.EDICIONES_CREADA, disponible: true });
+  assert.deepEqual(proteccionFila_(registro, `BOT-${SELLO}-${ID_ERIN}-1`), { entera: false, columnas: [] });
+  assert.equal(proteccionFila_(registro, 'BOT-20260101-000000-9-1').entera, true);
 });
 
 /** Hace que escribir filas en la hoja falle mientras corre `hacer`; luego la deja como estaba. */

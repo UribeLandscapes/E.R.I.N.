@@ -170,6 +170,16 @@ test('registroParaEscribir arranca bajo candado y falla cerrado si creación fal
   try { assert.equal(registroParaEscribir_(ss, deps).disponible, false); } finally { console.error = real; }
 });
 
+test('registroParaEscribir con selloFila arranca con el corte un segundo antes de esa fila', () => {
+  const props = propiedadesFalsas();
+  const ss = libroFalso();
+  global.crearPestanaOculta_ = (libro, nombre, columnas) => { libro.hoja = hojaEdiciones(columnas); };
+  const deps = { propiedades: props, sello: () => '20260928-093005' };
+  assert.equal(registroParaEscribir_(ss, deps, '20260928-093000').disponible, true);
+  assert.equal(props.getProperty(PROPIEDAD_EDICIONES_CREADA), selloAnterior_('20260928-093000'));
+  assert.equal(props.getProperty(PROPIEDAD_EDICIONES_CREADA), '20260928-092959');
+});
+
 test('lectura de datos fallida sigue indisponible aunque no pueda marcarse la pérdida', () => {
   const props = propiedadesFalsas({ [PROPIEDAD_EDICIONES_CREADA]: '20260928-093000' });
   props.setProperty = () => { throw new Error('propiedades'); };

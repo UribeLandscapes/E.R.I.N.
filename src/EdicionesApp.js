@@ -93,9 +93,12 @@ function asegurarEdiciones_(ss, deps, selloFila) {
   }
 }
 
-/** Uso por escrituras del bot que ya tienen el candado. */
-function registroParaEscribir_(ss, deps) {
-  if (!asegurarEdiciones_(ss, deps)) return registroEdiciones_({ filas: [], corte: '', disponible: false });
+/**
+ * Uso por escrituras del bot que ya tienen el candado. `selloFila` (opcional) es el sello de la fila
+ * nueva que se va a escribir: en instalación nueva el corte queda un segundo antes, no en "ahora".
+ */
+function registroParaEscribir_(ss, deps, selloFila) {
+  if (!asegurarEdiciones_(ss, deps, selloFila)) return registroEdiciones_({ filas: [], corte: '', disponible: false });
   return leerRegistroEdiciones_(ss, deps.propiedades);
 }
 
