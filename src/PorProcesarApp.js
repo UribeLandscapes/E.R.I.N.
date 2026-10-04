@@ -216,12 +216,18 @@ const esperandoTotal_ = (filasEstado) => porProcesarAbiertas_(filasEstado)
 
 const instanteEstado_ = (valor) => new Date(valor).getTime();
 
-/** true si ninguna otra entrada abierta de `_ESTADO` es más nueva que esa (no hay con cuál confundirla). */
+/**
+ * true si ninguna otra pregunta abierta de `_ESTADO` es más nueva que esa (no hay con cuál
+ * confundirla). Los REGISTRO abiertos son constancias de una confirmación, no preguntas: confirmar
+ * el total deja uno más nuevo que la foto y no debe frenar la respuesta que sigue.
+ */
 function esLaPreguntaMasNueva_(filasEstado, pregunta) {
   const iEstado = COLUMNAS_ESTADO.indexOf('ESTADO');
   const iCreado = COLUMNAS_ESTADO.indexOf('CREADO');
+  const iTipo = COLUMNAS_ESTADO.indexOf('TIPO');
   return filasEstado.every((fila, i) => i + 2 === pregunta.fila
     || fila[iEstado] !== PREGUNTA_ABIERTA
+    || fila[iTipo] === TIPO_ESTADO_REGISTRO
     || instanteEstado_(fila[iCreado]) <= instanteEstado_(pregunta.creado));
 }
 

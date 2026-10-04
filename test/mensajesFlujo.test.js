@@ -1037,3 +1037,18 @@ test('atenderMensaje_ con acuse no escribe en el Sheet ni toca _ESTADO', () => {
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), estadoAntes);
   assert.equal(celdaEstado(estado, 2, 'CLAVE'), claveAntes);
 });
+
+// --- Auditoría P2: dos depósitos atrasados de septiembre mandados en octubre no repiten el ID FACTURA ---
+
+test('dos depósitos de septiembre mandados en octubre reciben ID FACTURA distintos en la pestaña de septiembre', () => {
+  const { ss, sep, estado } = escenario();
+  const octubre = new Date(2026, 9, 2, 9, 30, 0);
+  const d = dependencias(ss, { ahora: () => octubre });
+  const enOctubre = (texto, id) => mensaje(texto, { message_id: id, date: Math.floor(octubre.getTime() / 1000) });
+  ponerGemini(datosGemini({ intencion: 'DEPOSITO', fecha: '2026-09-30', total: 200, proveedor: 'Beto' }));
+  atenderMensaje_(enOctubre('depósito 200 del 30', 601), d, estado);
+  ponerGemini(datosGemini({ intencion: 'DEPOSITO', fecha: '2026-09-30', total: 50, proveedor: 'Beto' }));
+  atenderMensaje_(enOctubre('otro depósito 50 del 30', 602), d, estado);
+  assert.equal(filaDe(sep, 8)['ID FACTURA'], 'DEPOSITO-20260930');
+  assert.equal(filaDe(sep, 9)['ID FACTURA'], 'DEPOSITO-20260930-2');
+});

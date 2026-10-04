@@ -837,7 +837,7 @@ test('proveedor protegido y PENDIENTE no se pisa ni se renombra', () => {
   assert.equal(textosEnviados(caso.d).pop(), textoNadaCambiado_(['PROVEEDOR']));
 });
 
-test('una columna anotada que no era PENDIENTE no se reporta como saltada', () => {
+test('un proveedor que ya no era PENDIENTE no se pisa, no se avisa como anotado ni como saltado', () => {
   const caso = enModoPreguntas();
   const id = filaDe(caso.sep, 7)['ID FILA'];
   const antes = archivosDe(caso.raiz);
@@ -855,7 +855,8 @@ test('una columna anotada que no era PENDIENTE no se reporta como saltada', () =
   }
   assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Proveedor manual');
   assert.deepEqual(archivosDe(caso.raiz), antes);
-  assert.equal(textosEnviados(caso.d).pop(), textoProveedorAnotado_('Riba Smith'));
+  assert.ok(!textosEnviados(caso.d).includes(textoProveedorAnotado_('Riba Smith')));
+  assert.ok(!textosEnviados(caso.d).includes(textoNadaCambiado_(['PROVEEDOR'])));
   assert.deepEqual(lineas.filter((linea) => linea.includes('editadas a mano')), []);
 });
 
@@ -1081,4 +1082,53 @@ test('el proveedor escrito y su clase se guardan en el REGISTRO de la confirmaci
   const datos = datosRegistro(caso.estado);
   assert.equal(datos.proveedor, 'Riba Smith');
   assert.equal(datos.clase, filaDe(caso.sep, 7)['CLASE DE GASTO']);
+});
+
+// --- Auditoría P2: REGISTRO no cuenta como pregunta pendiente; proveedor ya lleno ---
+
+const filasDeRegistro = (estado) => filasEstado_(estado)
+  .filter((f) => f[COLUMNAS_ESTADO.indexOf('TIPO')] === 'REGISTRO');
+
+test('el proveedor escrito sin cita llega aunque confirmar el total dejara un REGISTRO más nuevo', () => {
+  const caso = fotoSinLeer();
+  let reloj = AHORA.getTime();
+  caso.d.ahora = () => new Date(reloj);
+  reloj += 60000;
+  atenderBoton_(toqueTotal('si'), caso.d, caso.estado);
+  reloj += 60000;
+  reintentarPorProcesar_(caso.d, caso.estado);
+  reloj += 60000;
+  reintentarPorProcesar_(caso.d, caso.estado);
+  const registros = filasDeRegistro(caso.estado);
+  assert.equal(registros.length, 1);
+  assert.ok(new Date(registros[0][COLUMNAS_ESTADO.indexOf('CREADO')]).getTime() > AHORA.getTime());
+  caso.d.llamadas.length = 0;
+  const atendido = atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: { chatId: CHAT } },
+    mensajeTexto('Riba Smith'), 'Riba Smith');
+  assert.equal(atendido, true);
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+});
+
+test('un BORRAR abierto más nuevo sigue frenando el proveedor escrito sin cita', () => {
+  const caso = enModoPreguntas();
+  caso.estado.appendRow(COLUMNAS_ESTADO.map((c) => ({
+    CREADO: new Date(2026, 8, 27, 23, 0, 0), TIPO: 'BORRAR', CLAVE: '555',
+    DATOS: '{"clave":"555"}', ESTADO: PREGUNTA_ABIERTA,
+  }[c] || '')));
+  assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: null },
+    mensajeTexto('Riba Smith'), 'Riba Smith'), false);
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'PENDIENTE');
+});
+
+test('repetir el proveedor cuando ya está lleno no lo pisa, no avisa "anotado" y sigue el camino normal', () => {
+  const caso = enModoPreguntas();
+  assert.equal(atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: { chatId: CHAT } },
+    mensajeTexto('Riba Smith'), 'Riba Smith'), true);
+  assert.equal(celdaEstado(caso.estado, 2, 'ESTADO'), PREGUNTA_ABIERTA);
+  caso.d.llamadas.length = 0;
+  const atendido = atenderProveedorEscrito_({ hojaEstado: caso.estado, deps: caso.d, momento: { chatId: CHAT } },
+    mensajeTexto('Otro Super'), 'Otro Super');
+  assert.equal(atendido, false);
+  assert.equal(filaDe(caso.sep, 7).PROVEEDOR, 'Riba Smith');
+  assert.deepEqual(textosEnviados(caso.d), []);
 });

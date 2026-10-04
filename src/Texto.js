@@ -279,6 +279,19 @@ function filasGasto_(datos, ctx) {
 }
 
 /**
+ * ID FACTURA de una fila con esa fecha. Los ID viven por pestaña de mes: si la fecha de la fila
+ * cae en otro mes que el del mensaje (un depósito atrasado), se numera con los ID de ese mes
+ * (ctx.idsFacturaDe(fecha)), no con los del mes en que se mandó el mensaje. Sin ctx.idsFacturaDe
+ * se usa ctx.idsFactura.
+ */
+function idFacturaDelMes_(proveedor, fecha, ctx) {
+  const ids = typeof ctx.idsFacturaDe === 'function' && mesDistinto_(fecha, ctx.fechaMensaje)
+    ? ctx.idsFacturaDe(fecha)
+    : ctx.idsFactura;
+  return idFactura_(proveedor, fecha, ids);
+}
+
+/**
  * Montos de un depósito: USD, PAB o sin moneda van a la par (sin tasa, igual que antes); otra
  * moneda se pasa a USD con la misma conversión que un gasto (ctx.aUsd) y guarda el monto original
  * y la tasa. Sin tasa, DEPÓSITO y TASA USADA quedan PENDIENTE: nunca un número inventado.
@@ -308,7 +321,7 @@ function filasDeposito_(datos, ctx) {
   const fila = {
     ...filaVacia_(ctx),
     FECHA: fecha,
-    'ID FACTURA': idFactura_('DEPOSITO', fecha, ctx.idsFactura),
+    'ID FACTURA': idFacturaDelMes_('DEPOSITO', fecha, ctx),
     TIPO: TIPO_DEPOSITO_FILA,
     // Mismo mapeo de ortografía que un gasto, sin caso especial.
     PROVEEDOR: ortografiaProveedor_(ctx.historial, datos.proveedor || ctx.depositante),
@@ -340,7 +353,7 @@ function planSaldoInicial_(datos, ctx) {
   const fila = {
     ...filaVacia_(ctx),
     FECHA: fecha,
-    'ID FACTURA': idFactura_('SALDOINICIAL', fecha, ctx.idsFactura),
+    'ID FACTURA': idFacturaDelMes_('SALDOINICIAL', fecha, ctx),
     TIPO: TIPO_SALDO_INICIAL_FILA,
     'DEPÓSITO': monto,
     MONEDA: 'USD',

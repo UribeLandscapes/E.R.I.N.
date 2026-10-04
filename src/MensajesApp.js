@@ -166,6 +166,8 @@ function contextoTexto_(entorno, { idMensaje, fechaMensaje }) {
     idMensaje,
     fechaMensaje,
     idsFactura: idsFacturaDelMes_(ss, fechaMensaje),
+    // Un depósito atrasado se numera con los ID de su propio mes.
+    idsFacturaDe: (fecha) => idsFacturaDelMes_(ss, fecha),
     depositante: CONFIG.DEPOSITANTE_POR_DEFECTO,
     // La ortografía ya usada de cada proveedor.
     historial: resumen.historialProveedores,
@@ -306,6 +308,7 @@ function contextoCorreccion_(entorno, registro, datos) {
   return {
     ...ctx,
     idsFactura: ctx.idsFactura.filter((id) => id !== registro.idFactura),
+    idsFacturaDe: (fecha) => ctx.idsFacturaDe(fecha).filter((id) => id !== registro.idFactura),
     corregido: true,
     // claseTrasCorregirProveedor_ ya decidió la clase final antes de
     // llegar aquí; sin esto, claseDeGasto_ volvería a mirar el historial y

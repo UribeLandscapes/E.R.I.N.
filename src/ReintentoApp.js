@@ -386,6 +386,9 @@ function atenderProveedorEscrito_(entorno, mensaje, texto) {
   const ss = deps.libro();
   const filas = buscarFilas_(ss, entrada.idFilas, '');
   if (!filas.length) return false;
+  // Si el proveedor ya está lleno no hay nada que anotar: el mensaje sigue su camino normal
+  // (Gemini y las correcciones) en vez de consumirse sin escribir y fingir que quedó anotado.
+  if (!filas.some((fila) => textoCelda_(fila.valores.PROVEEDOR) === MARCA_PENDIENTE)) return false;
   const { historialProveedores } = resumenHoja_(ss);
   const { valores } = filas[0];
   const proveedor = ortografiaProveedor_(historialProveedores, texto.trim());

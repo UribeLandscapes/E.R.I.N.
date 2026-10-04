@@ -918,3 +918,34 @@ test('planTexto_ gasto con foto pero sin monto solo pregunta el monto (sin líne
   assert.deepEqual(plan.filas, []);
   assert.equal(plan.respuesta, '¿Me dices el monto?');
 });
+
+// --- Auditoría P2: el ID FACTURA sale de los IDs del mes de la fecha de la fila, no del mes del mensaje ---
+
+test('filasDeposito_ con fecha de otro mes toma los IDs de ese mes (idsFacturaDe), no los del mes del mensaje', () => {
+  const consultas = [];
+  const idsFacturaDe = (fecha) => { consultas.push(fecha); return ['DEPOSITO-20260930']; };
+  const { filas } = filasDeposito_({ ...deposito, fecha: '2026-09-30' },
+    contexto({ fechaMensaje: '2026-10-02', idsFactura: [], idsFacturaDe }));
+  assert.equal(filas[0]['ID FACTURA'], 'DEPOSITO-20260930-2');
+  assert.deepEqual(consultas, ['2026-09-30']);
+});
+
+test('filasDeposito_ con fecha del mismo mes usa ctx.idsFactura sin consultar idsFacturaDe', () => {
+  const idsFacturaDe = () => { throw new Error('no debería consultar otro mes'); };
+  const { filas } = filasDeposito_({ ...deposito, fecha: '2026-09-30' },
+    contexto({ fechaMensaje: '2026-09-30', idsFactura: ['DEPOSITO-20260930'], idsFacturaDe }));
+  assert.equal(filas[0]['ID FACTURA'], 'DEPOSITO-20260930-2');
+});
+
+test('filasDeposito_ con fecha de otro mes y sin idsFacturaDe conserva ctx.idsFactura', () => {
+  const { filas } = filasDeposito_({ ...deposito, fecha: '2026-09-30' },
+    contexto({ fechaMensaje: '2026-10-02', idsFactura: ['DEPOSITO-20260930'] }));
+  assert.equal(filas[0]['ID FACTURA'], 'DEPOSITO-20260930-2');
+});
+
+test('planSaldoInicial_ con fecha de otro mes toma los IDs de ese mes (idsFacturaDe)', () => {
+  const plan = planSaldoInicial_({ ...saldoInicial, fecha: '2026-09-01' },
+    contexto({ saldoInicialDefinido: false, fechaMensaje: '2026-10-02', idsFactura: [],
+      idsFacturaDe: () => ['SALDOINICIAL-20260901'] }));
+  assert.equal(plan.filas[0]['ID FACTURA'], 'SALDOINICIAL-20260901-2');
+});
