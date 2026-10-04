@@ -122,14 +122,17 @@ function reabrirPregunta_(hojaEstado, pregunta, restantes, porFila, pestana) {
   celda.setValue(JSON.stringify({ ...datos, preguntas: restantes, pestana, escrito }));
 }
 
-/** Pregunta de monto: devuelve los datos del mensaje completos para registrarlos de nuevo. */
+/**
+ * Pregunta de monto: devuelve los datos del mensaje completos para registrarlos de nuevo. No la
+ * cierra: quien registra el gasto la cierra con cerrarPregunta_ cuando ya se escribió, así un fallo
+ * al escribir deja la pregunta abierta y el usuario puede volver a contestarla.
+ */
 function respuestaMonto_(hojaEstado, pregunta, respuesta) {
   const linea = (respuesta.lineas || []).find((l) => esMonto_(l.monto));
   const monto = esMonto_(respuesta.total) ? respuesta.total : linea && linea.monto;
   if (!esMonto_(monto)) return { texto: `${TEXTO_NO_CLARO} ${textoPreguntas_(['monto'])}`, cerrada: false };
-  cerrarPregunta_(hojaEstado, pregunta);
   return {
-    texto: '', cerrada: true, datosCompletos: datosConMonto_(pregunta.datos, monto),
+    texto: '', cerrada: false, datosCompletos: datosConMonto_(pregunta.datos, monto),
     fechaMensaje: pregunta.fechaMensaje, idMensaje: pregunta.idMensaje,
     // La foto no traía fecha legible; quien registre estas filas tiene que preguntarla.
     fechaIlegible: pregunta.fechaIlegible || null,
@@ -243,15 +246,16 @@ function finalizarRespuesta_(hojaEstado, pregunta, cambios, filtrado, movida) {
   const texto = [partes.join(' '), ...filtrado.plan.corregidas.map((c) => mensajeCorregido_(c.valor))].join('\n');
   if (restantes.length) {
     reabrirPregunta_(hojaEstado, pregunta, restantes, filtrado.plan.porFila, movida || pregunta.pestana);
-    return { texto, cerrada: false };
+    return { texto, cerrada: false, porFila: filtrado.plan.porFila };
   }
   cerrarPregunta_(hojaEstado, pregunta);
-  return { texto, cerrada: true };
+  return { texto, cerrada: true, porFila: filtrado.plan.porFila };
 }
 
 /**
  * Aplica la respuesta del usuario a una pregunta abierta de _ESTADO. Devuelve { texto, cerrada } y,
  * para la pregunta de monto, { datosCompletos, fechaMensaje, idMensaje } para registrar el gasto.
+ * Si escribió celdas, trae también `porFila` ({ idFila: { columna: valor } }) con lo escrito.
  */
 function aplicarRespuesta_(ss, hojaEstado, pregunta, respuesta, opciones) {
   if (pregunta.preguntas.includes('monto')) return respuestaMonto_(hojaEstado, pregunta, respuesta);

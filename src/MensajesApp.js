@@ -9,7 +9,7 @@
  * Texto.js; esSaludoOAyuda_, esAcuse_, esBorrarSolo_ y fraseAnimo_ de Mensajes.js (la
  * guía sin llamar a Gemini; los acuses sin escribir nada; "borrar" solo, citando
  * una confirmación abierta, pide el borrado sin Gemini);
- * escribirFilas_, guardarPregunta_ y aplicarRespuesta_ de EscrituraApp.js; filasEstado_, idsFacturaDelMes_, abrirConteo_ y atenderBotonConteo_ de
+ * escribirFilas_, guardarPregunta_, cerrarPregunta_ y aplicarRespuesta_ de EscrituraApp.js; sincronizarRegistros_ de RegistroApp.js; filasEstado_, idsFacturaDelMes_, abrirConteo_ y atenderBotonConteo_ de
  * BotonesApp.js; tecladoConteo_ de Botones.js; PREFIJO_FECHA, tecladoFecha_, leerBotonFecha_,
  * filaFecha_ y buscarFecha_ de Fecha.js (fecha del recibo de otro mes que el día en
  * que el usuario lo mandó); llamarGeminiConReintento_ y describirError_ de Gemini.js; leerExtraccion_ de
@@ -179,16 +179,21 @@ function contextoTexto_(entorno, { idMensaje, fechaMensaje }) {
  * Escribe las filas del plan, responde por Telegram y solo entonces guarda en _ESTADO lo que
  * queda abierto (la clave de una pregunta es el message_id de esa respuesta). La fecha de otro
  * mes no escribe nada todavía: se resuelve aparte con botones.
+ * `alRegistrar` (opcional) corre una sola vez cuando el registro ya quedó firme (filas escritas o
+ * pregunta de fecha abierta) y antes de responder: ahí se cierra la pregunta que originó este
+ * registro, para que un fallo al escribir la deje abierta y un reintento no duplique filas.
  * Devuelve las filas que escribió ([{ pestana, numero, fila }], vacío si no escribió ninguna), que
  * es lo que MensajesFoto.js necesita para la pregunta.
  */
-function registrarPlan_(entorno, plan, ctx, datos) {
+function registrarPlan_(entorno, plan, ctx, datos, alRegistrar) {
   if (plan.fechaDistinta) {
     registrarFechaDistinta_(entorno, plan, ctx, datos);
+    if (alRegistrar) alRegistrar();
     return [];
   }
   const { ss, momento } = entorno;
   const escritas = plan.filas.length ? escribirFilas_(ss, plan.filas, momento.sello, momento.ahora) : [];
+  if (alRegistrar) alRegistrar();
   responderPlan_(entorno, plan, ctx, datos, escritas);
   return escritas;
 }
@@ -460,6 +465,8 @@ function atenderRespuesta_(entorno, mensaje, datos) {
   opciones.propiedades = deps.propiedades;
   opciones.registro = registroParaEscribir_(ss, deps);
   const aplicada = aplicarRespuesta_(ss, hojaEstado, pregunta, datos, opciones);
+  // El REGISTRO de esas filas guarda los datos de cuando se anotaron: se pone al día con lo contestado.
+  if (aplicada.porFila) sincronizarRegistros_(hojaEstado, pregunta.idFilas, aplicada.porFila);
   if (!aplicada.datosCompletos) {
     enviarTelegram_(deps, 'sendMessage', { chat_id: momento.chatId, text: aplicada.texto });
     return true;
@@ -467,7 +474,7 @@ function atenderRespuesta_(entorno, mensaje, datos) {
   const ctx = contextoTexto_(entorno, aplicada);
   const completos = aplicada.datosCompletos;
   const plan = planTexto_(completos, ctx);
-  const escritas = registrarPlan_(entorno, plan, ctx, completos);
+  const escritas = registrarPlan_(entorno, plan, ctx, completos, () => cerrarPregunta_(hojaEstado, pregunta));
   // Si la foto tampoco traía fecha legible, esta respuesta es la que escribió las filas, así
   // que ahora es cuando se pregunta si la fecha del día en que la mandó está bien.
   preguntarFechaFotoSiHace_(entorno, {
@@ -575,7 +582,7 @@ function respuestaFechaAtendida_(deps, callbackQuery) {
 /**
  * Atiende el toque de "fecha del recibo" / "día que lo mandé": vuelve a correr
  * planTexto_ con la fecha elegida (sus ID FACTURA salen del mes de esa fecha, no del de hoy),
- * cierra la pregunta y sigue el camino normal de un mensaje (escribe, responde, abre una pregunta
+ * cierra la pregunta (cuando ya registró, no antes) y sigue el camino normal de un mensaje (escribe, responde, abre una pregunta
  * nueva si algo más queda pendiente). Ya atendida o desconocida: solo contesta el botón.
  */
 function atenderBotonFecha_(entorno, callbackQuery) {
@@ -591,9 +598,8 @@ function atenderBotonFecha_(entorno, callbackQuery) {
   const elegida = boton.recibo ? pregunta.datos.fecha : pregunta.fechaMensaje;
   const ctx = contextoTexto_(entorno, { idMensaje: pregunta.idMensaje, fechaMensaje: elegida });
   const datosElegidos = { ...pregunta.datos, fecha: elegida };
-  celdaEstado_(hojaEstado, pregunta.fila, 'ESTADO').setValue(PREGUNTA_CERRADA);
   const plan = planTexto_(datosElegidos, ctx);
-  registrarPlan_(entorno, plan, ctx, datosElegidos);
+  registrarPlan_(entorno, plan, ctx, datosElegidos, () => cerrarPregunta_(hojaEstado, pregunta));
   // Si la entrada vino de una foto, ahora que hay filas la foto va a la carpeta del mes.
   moverFotoDelPlan_(deps, plan, datosElegidos);
 }

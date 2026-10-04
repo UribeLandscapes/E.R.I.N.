@@ -5,6 +5,7 @@
  * (ID FILA, ORIGEN, REGISTRADO, ID MENSAJE TG) y CASA, para que filaLibre_ pueda reusar la fila.
  * Usa tramosEscritura_, preguntasAbiertas_ y ORIGEN_BOT de Escritura.js; PREGUNTA_CERRADA,
  * celdaEstado_, guardarPregunta_ y buscarFilas_ de EscrituraApp.js; filasEstado_ de BotonesApp.js.
+ * Usa registrosAbiertos_ y datosTrasRespuesta_ de Registro.js; leerDatosEstado_ de Escritura.js.
  * Usa registroParaEscribir_ de EdicionesApp.js, tieneEdicionesManuales_ y
  * TEXTO_NO_BORRO_MANUAL de Ediciones.js.
  */
@@ -42,6 +43,21 @@ function cerrarPreguntasDeFilas_(hojaEstado, idFilas) {
     .forEach((pregunta) => cerrarEstado_(hojaEstado, pregunta.fila));
 }
 
+/**
+ * Una respuesta cambió celdas de esas filas: pone los mismos cambios en los datos guardados de
+ * cada REGISTRO abierto que las tenga, para que corregir después no reescriba valores viejos.
+ */
+function sincronizarRegistros_(hojaEstado, idFilas, porFila) {
+  const ids = new Set(idFilas);
+  registrosAbiertos_(filasEstado_(hojaEstado))
+    .filter((registro) => registro.idFilas.some((id) => ids.has(id)))
+    .forEach((registro) => {
+      const celda = celdaEstado_(hojaEstado, registro.fila, 'DATOS');
+      const guardado = leerDatosEstado_(celda.getValue());
+      celda.setValue(JSON.stringify({ ...guardado, datos: datosTrasRespuesta_(registro.datos, porFila) }));
+    });
+}
+
 /** Deja la entrada como borrada: limpia sus filas y cierra sus preguntas y su REGISTRO. */
 function limpiarEntrada_(ss, hojaEstado, registro) {
   const filas = filasDelRegistro_(ss, registro);
@@ -68,6 +84,6 @@ function borrarEntrada_(ss, hojaEstado, clave, deps) {
 if (typeof module !== 'undefined') {
   module.exports = {
     abrirRegistro_, abrirBorrado_, cerrarEstado_, filasDelRegistro_, limpiarFilas_,
-    cerrarPreguntasDeFilas_, borrarEntrada_,
+    cerrarPreguntasDeFilas_, sincronizarRegistros_, borrarEntrada_,
   };
 }

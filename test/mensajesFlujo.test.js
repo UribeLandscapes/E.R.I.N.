@@ -267,6 +267,86 @@ test('atenderMensaje_ responde la contestación de una pregunta de monto y regis
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
 });
 
+/** Hace que escribir filas en la hoja falle mientras corre `hacer`; luego la deja como estaba. */
+function conEscrituraRota_(hoja, hacer) {
+  const original = hoja.getRange;
+  hoja.getRange = (...args) => ({
+    ...original(...args),
+    setValues: () => { throw new Error('Sheets no responde'); },
+  });
+  try { hacer(); } finally { hoja.getRange = original; }
+}
+
+/** Escenario con la pregunta de monto abierta (clave 901) esperando el total de un taxi. */
+function conPreguntaDeMonto() {
+  const caso = escenario();
+  guardarPregunta_(caso.estado, preguntaEstado_({
+    creado: AHORA,
+    clave: 901,
+    preguntas: ['monto'],
+    filas: [],
+    pestana: '',
+    extra: {
+      datos: datosGemini({ intencion: 'GASTO', proveedor: 'Taxi', fecha: '2026-09-26', clase: 'GROCERIES' }),
+      fechaMensaje: '2026-09-26',
+      idMensaje: 55,
+    },
+  }));
+  ponerGemini(datosGemini({ intencion: 'RESPUESTA', total: 12.5 }));
+  return { ...caso, d: dependencias(caso.ss) };
+}
+
+const responderMonto = (d, estado) => atenderMensaje_(
+  mensaje('12.50', { reply_to_message: { message_id: 901 } }), d, estado);
+const filasConTaxi = (sep) => [8, 9, 10].filter((n) => filaDe(sep, n).PROVEEDOR === 'Taxi').length;
+
+test('si falla escribir el gasto, la pregunta de monto sigue abierta y el reintento no duplica filas', () => {
+  const { sep, estado, d } = conPreguntaDeMonto();
+  conEscrituraRota_(sep, () => assert.throws(() => responderMonto(d, estado), /Sheets no responde/));
+  assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'ABIERTA');
+  assert.equal(filasConTaxi(sep), 0);
+  responderMonto(d, estado);
+  assert.equal(filasConTaxi(sep), 1);
+  assert.equal(filaDe(sep, 8)['GASTO (USD)'], 12.5);
+  assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
+});
+
+test('registrado el gasto, la pregunta de monto se cierra una sola vez', () => {
+  const { sep, estado, d } = conPreguntaDeMonto();
+  responderMonto(d, estado);
+  assert.equal(filasConTaxi(sep), 1);
+  const cierres = estado.escrituras.filter(([metodo, fila, col]) => metodo === 'setValue'
+    && fila === 2 && col === COLUMNAS_ESTADO.indexOf('ESTADO') + 1);
+  assert.equal(cierres.length, 1);
+  assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
+});
+
+test('escrito el gasto, un fallo al avisar por Telegram no deja la pregunta de monto abierta', () => {
+  const { sep, estado, d } = conPreguntaDeMonto();
+  d.llamar = () => { throw new Error('Telegram no responde'); };
+  assert.throws(() => responderMonto(d, estado), /Telegram no responde/);
+  assert.equal(filasConTaxi(sep), 1);
+  assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
+});
+
+test('si falla escribir al tocar el botón de fecha, la pregunta sigue abierta y el reintento escribe una vez', () => {
+  const { ss, sep, estado } = escenario();
+  guardarPregunta_(estado, filaFecha_({
+    creado: AHORA,
+    idMensaje: ID_ERIN,
+    datos: datosGemini({ intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-15', total: 25, clase: 'GROCERIES' }),
+    fechaMensaje: '2026-09-27',
+  }));
+  const d = dependencias(ss);
+  const boton = { id: 'cb-1', data: `fecha:${ID_ERIN}:recibo`, message: { message_id: 900, date: 1790000000, chat: { id: CHAT } } };
+  conEscrituraRota_(sep, () => assert.throws(() => atenderBoton_(boton, d, estado), /Sheets no responde/));
+  assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'ABIERTA');
+  atenderBoton_(boton, d, estado);
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Riba Smith');
+  assert.ok(COLUMNAS.every((c, i) => c === 'GRUPO' || sep.leer(9, i + 1) === ''));
+  assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
+});
+
 test('atenderMensaje_ aplica a la pregunta citada con "Responder" aunque la intención no sea RESPUESTA', () => {
   const { ss, sep, estado } = escenario();
   ponerGemini([

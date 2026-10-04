@@ -98,6 +98,25 @@ function fusionarCorreccion_(guardados, cambios) {
   return fusion;
 }
 
+/**
+ * Datos guardados de una entrada tras contestar una pregunta: las celdas que la respuesta escribió
+ * (`porFila` = { idFila: { columna: valor } }) se pasan a los campos de la extracción y se funden como
+ * una corrección. Así el REGISTRO sigue diciendo lo mismo que la hoja y una corrección posterior
+ * no deshace lo contestado. El total en otra moneda se guarda en esa moneda (MONTO ORIGINAL).
+ */
+function datosTrasRespuesta_(guardados, porFila) {
+  const campos = { FECHA: 'fecha', PROVEEDOR: 'proveedor', 'CLASE DE GASTO': 'clase' };
+  const cambios = {};
+  for (const cambio of Object.values(porFila || {})) {
+    for (const [columna, campo] of Object.entries(campos)) {
+      if (!(campo in cambios) && cambio[columna] !== undefined) cambios[campo] = cambio[columna];
+    }
+    const total = cambio['MONTO ORIGINAL'] !== undefined ? cambio['MONTO ORIGINAL'] : cambio['GASTO (USD)'];
+    if (!('total' in cambios) && esMonto_(total)) cambios.total = total;
+  }
+  return fusionarCorreccion_(guardados, cambios);
+}
+
 /** true si la corrección cambió algo; si no, no vale la pena reescribir la entrada. */
 const hayCambio_ = (guardados, fusion) => JSON.stringify(guardados) !== JSON.stringify(fusion);
 
@@ -156,7 +175,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     TIPO_ESTADO_REGISTRO, TIPO_ESTADO_BORRAR, PREFIJO_BORRAR, INTENCIONES_CORRECCION,
     INTENCIONES_NO_CORRECCION, TEXTO_REGISTRO_NO_ESTA, TEXTO_BORRADO, TEXTO_NO_BORRADO,
-    filaRegistro_, registrosAbiertos_, buscarRegistro_, ultimoRegistro_, fusionarCorreccion_, hayCambio_,
+    filaRegistro_, registrosAbiertos_, buscarRegistro_, ultimoRegistro_, fusionarCorreccion_, datosTrasRespuesta_, hayCambio_,
     tecladoBorrar_, leerBotonBorrar_, filaBorrar_, buscarBorrar_,
   };
 }

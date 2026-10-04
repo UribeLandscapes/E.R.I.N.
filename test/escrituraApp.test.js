@@ -477,7 +477,7 @@ test('aplicarRespuesta_: una fila que ya no es del bot cuenta como que no está'
   assert.deepEqual(sep.escrituras, []);
 });
 
-test('aplicarRespuesta_: monto ilegible devuelve los datos completos y cierra la pregunta', () => {
+test('aplicarRespuesta_: monto ilegible devuelve los datos completos y deja la pregunta abierta para quien registra', () => {
   const estado = hojaFalsa('_ESTADO', { protegerDesborde: false });
   estado.appendRow([...COLUMNAS_ESTADO]);
   guardarPregunta_(estado, preguntaEstado_({
@@ -490,12 +490,12 @@ test('aplicarRespuesta_: monto ilegible devuelve los datos completos y cierra la
   assert.equal(nada.cerrada, false);
   assert.equal(nada.texto, 'No me quedó claro. ¿Me dices el monto?');
   const r = aplicarRespuesta_(ss, estado, leer()[0], { total: null, lineas: [{ monto: 12.5 }] }, opciones);
-  assert.equal(r.cerrada, true);
+  assert.equal(r.cerrada, false);
   assert.equal(r.texto, '');
   assert.deepEqual(r.datosCompletos, { intencion: 'GASTO', proveedor: 'Taxi', total: 12.5, lineas: [] });
   assert.equal(r.fechaMensaje, '2026-09-26');
   assert.equal(r.idMensaje, 55);
-  assert.equal(estado.leer(2, COLUMNAS_ESTADO.indexOf('ESTADO') + 1), 'CERRADA');
+  assert.equal(estado.leer(2, COLUMNAS_ESTADO.indexOf('ESTADO') + 1), 'ABIERTA');
 });
 
 test('aplicarRespuesta_: fecha de un mes sin pestaña la crea y mueve la fila ahí', () => {

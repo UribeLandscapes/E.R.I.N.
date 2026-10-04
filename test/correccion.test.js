@@ -429,6 +429,33 @@ test('corregir el proveedor cuando la corrección también trae su propia clase 
   assert.equal(filaDe(sep, 8)['CLASE DE GASTO'], 'MEDS');
 });
 
+// --- La respuesta a una pregunta queda en el REGISTRO: una corrección posterior no la deshace ---
+
+test('una corrección de fecha conserva el proveedor que el usuario contestó antes', () => {
+  const sinProveedor = datosGemini({ intencion: 'GASTO', proveedor: null, fecha: '2026-09-27', total: 22.5, clase: 'GROCERIES' });
+  const respuesta = datosGemini({ intencion: 'RESPUESTA', proveedor: 'Super 99' });
+  const correccion = datosGemini({ intencion: 'CORREGIR', fecha: '2026-09-26' });
+  const { sep, estado, d } = conEntrada([respuesta, correccion], sinProveedor);
+  atenderMensaje_(mensaje('Super 99', { message_id: ID_ERIN + 1, reply_to_message: { message_id: 901 } }), d, estado);
+  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Super 99');
+  atenderMensaje_(mensaje('la fecha era el 26', { message_id: ID_ERIN + 2 }), d, estado);
+  assert.ok(filaVacia(sep, 7), JSON.stringify(filaDe(sep, 7)));
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Super 99');
+  assert.equal(filaDe(sep, 8).FECHA, '2026-09-26');
+});
+
+test('una corrección de fecha conserva la clase que el usuario contestó antes', () => {
+  const sinClase = datosGemini({ intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-27', total: 22.5, clase: 'PENDIENTE' });
+  const respuesta = datosGemini({ intencion: 'RESPUESTA', clase: 'Farmacia y medicinas' });
+  const correccion = datosGemini({ intencion: 'CORREGIR', fecha: '2026-09-26' });
+  const { sep, estado, d } = conEntrada([respuesta, correccion], sinClase);
+  atenderMensaje_(mensaje('farmacia', { message_id: ID_ERIN + 1, reply_to_message: { message_id: 901 } }), d, estado);
+  assert.equal(filaDe(sep, 7)['CLASE DE GASTO'], 'MEDS');
+  atenderMensaje_(mensaje('la fecha era el 26', { message_id: ID_ERIN + 2 }), d, estado);
+  assert.equal(filaDe(sep, 8)['CLASE DE GASTO'], 'MEDS');
+  assert.equal(filaDe(sep, 8).FECHA, '2026-09-26');
+});
+
 // --- (F) Al escribir un proveedor nuevo, usar la ortografía del historial ---
 
 test('corregir el proveedor usa la ortografía del historial (defecto de la revisión)', () => {

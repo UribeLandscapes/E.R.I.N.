@@ -17,7 +17,7 @@ const {
   hayCambio_,
   TIPO_ESTADO_REGISTRO, TIPO_ESTADO_BORRAR, PREFIJO_BORRAR, INTENCIONES_CORRECCION,
   INTENCIONES_NO_CORRECCION, TEXTO_REGISTRO_NO_ESTA, TEXTO_BORRADO, TEXTO_NO_BORRADO,
-  filaRegistro_, registrosAbiertos_, buscarRegistro_, ultimoRegistro_, fusionarCorreccion_,
+  filaRegistro_, registrosAbiertos_, buscarRegistro_, ultimoRegistro_, fusionarCorreccion_, datosTrasRespuesta_,
   tecladoBorrar_, leerBotonBorrar_, filaBorrar_, buscarBorrar_,
 } = require('../src/Registro.js');
 
@@ -139,6 +139,23 @@ test('registrosAbiertos_ lee un CREADO guardado como texto', () => {
 });
 
 // --- Fusión de la corrección ---
+
+test('datosTrasRespuesta_ pasa a los datos lo que la respuesta escribió en las celdas', () => {
+  const guardados = { proveedor: null, fecha: null, total: 10, clase: 'PENDIENTE', lineas: [{ tipo: 'ITEM', monto: 10 }] };
+  const porFila = { 'BOT-1': { PROVEEDOR: 'Super 99', FECHA: '2026-09-20', 'CLASE DE GASTO': 'GROCERIES', 'GASTO (USD)': 12.5 } };
+  assert.deepEqual(datosTrasRespuesta_(guardados, porFila), {
+    proveedor: 'Super 99', fecha: '2026-09-20', total: 12.5, clase: 'GROCERIES', lineas: [{ tipo: 'ITEM', monto: 12.5 }],
+  });
+  assert.equal(guardados.proveedor, null);
+});
+
+test('datosTrasRespuesta_ guarda el total en la moneda original y no inventa campos', () => {
+  const guardados = { proveedor: 'Taxi', total: 10, lineas: [] };
+  const porFila = { 'BOT-1': { 'MONTO ORIGINAL': 40, 'GASTO (USD)': 10.5, REVISAR: '' } };
+  assert.deepEqual(datosTrasRespuesta_(guardados, porFila), { proveedor: 'Taxi', total: 40, lineas: [] });
+  assert.deepEqual(datosTrasRespuesta_(guardados, {}), guardados);
+  assert.deepEqual(datosTrasRespuesta_(guardados, undefined), guardados);
+});
 
 test('fusionarCorreccion_ solo cambia lo que Gemini llenó', () => {
   const cambios = {
