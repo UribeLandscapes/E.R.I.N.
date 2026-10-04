@@ -200,11 +200,14 @@ function registrarPlan_(entorno, plan, ctx, datos, alRegistrar) {
 
 /**
  * Manda la respuesta y deja en _ESTADO lo que queda abierto: el conteo, la pregunta de lo que
- * falte y el REGISTRO de la confirmación. Las tres claves son el message_id
+ * falte y el REGISTRO de la confirmación. La clave de la pregunta y del REGISTRO es el message_id
  * de la respuesta que se acaba de enviar, así "Responder" sobre ella encuentra a qué apunta.
+ * Si el envío falla las filas ya están escritas: igual se guarda todo, con el id del mensaje del
+ * usuario como clave (responderle a su propio mensaje lo encuentra), y se relanza el error original
+ * para que el webhook avise que revise la hoja. Nunca reescribe filas.
  */
 function responderPlan_(entorno, plan, ctx, datos, escritas) {
-  const { hojaEstado, deps, momento } = entorno;
+  const { deps, momento } = entorno;
   const envio = {
     chat_id: momento.chatId,
     text: plan.respuesta || TEXTO_ANOTADO,
@@ -212,13 +215,25 @@ function responderPlan_(entorno, plan, ctx, datos, escritas) {
     // plan.respuesta cualquiera con "&" sin escapar tumbaría el envío (Telegram 400) y se perdería.
     ...(plan.html ? { parse_mode: 'HTML' } : {}),
   };
-  const enviado = enviarTelegram_(deps, 'sendMessage',
-    plan.conteo ? { ...envio, reply_markup: tecladoConteo_(ctx.idMensaje) } : envio);
+  let enviado;
+  try {
+    enviado = enviarTelegram_(deps, 'sendMessage',
+      plan.conteo ? { ...envio, reply_markup: tecladoConteo_(ctx.idMensaje) } : envio);
+  } catch (error) {
+    guardarEstadoPlan_(entorno, plan, ctx, datos, escritas, ctx.idMensaje);
+    throw error;
+  }
+  guardarEstadoPlan_(entorno, plan, ctx, datos, escritas, enviado.message_id);
+}
+
+/** Guarda en _ESTADO el conteo, la pregunta y el REGISTRO de un plan, con `clave` como llave. */
+function guardarEstadoPlan_(entorno, plan, ctx, datos, escritas, clave) {
+  const { hojaEstado, momento } = entorno;
   if (plan.conteo) abrirConteo_(hojaEstado, { idMensaje: ctx.idMensaje, ...plan.conteo }, momento.ahora);
   if (plan.preguntas.length) {
     guardarPregunta_(hojaEstado, preguntaEstado_({
       creado: momento.ahora,
-      clave: enviado.message_id,
+      clave,
       preguntas: plan.preguntas,
       filas: escritas.map((e) => e.fila),
       pestana: escritas.length ? escritas[0].pestana : '',
@@ -237,7 +252,7 @@ function responderPlan_(entorno, plan, ctx, datos, escritas) {
   }
   if (plan.confirmable && escritas.length) {
     abrirRegistro_(hojaEstado, {
-      clave: enviado.message_id,
+      clave,
       filas: escritas.map((e) => e.fila),
       pestana: escritas[0].pestana,
       datos,

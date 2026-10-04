@@ -559,6 +559,26 @@ test('atenderMensaje_ lanza error si Telegram no acepta la respuesta', () => {
     /Telegram sendMessage: HTTP 400 — Bad Request: chat not found/);
 });
 
+test('si falla el envío de la confirmación, guarda REGISTRO y pregunta con el id del mensaje del usuario y relanza', () => {
+  const { ss, sep, estado } = escenario();
+  ponerGemini(datosGemini({ intencion: 'GASTO', fecha: '2026-09-27', total: 25 }));
+  const d = dependencias(ss, { llamar: () => { throw new Error('Telegram no responde'); } });
+  assert.throws(() => atenderMensaje_(mensaje('25 en el super'), d, estado), /Telegram no responde/);
+  assert.equal(filaDe(sep, 8)['GASTO (USD)'], 25);
+  assert.equal(filaDe(sep, 9)['GASTO (USD)'], ''); // sin filas duplicadas
+  const tipos = [2, 3].map((f) => [celdaEstado(estado, f, 'TIPO'), String(celdaEstado(estado, f, 'CLAVE'))]);
+  assert.deepEqual(tipos.sort(), [['PREGUNTA', String(ID_ERIN)], ['REGISTRO', String(ID_ERIN)]].sort());
+});
+
+test('si falla el envío de un conteo, el conteo igual queda abierto y se relanza el error', () => {
+  const { ss, estado } = escenario();
+  ponerGemini(datosGemini({ intencion: 'CONTEO', total: 85 }));
+  const d = dependencias(ss, { llamar: () => { throw new Error('Telegram no responde'); } });
+  assert.throws(() => atenderMensaje_(mensaje('tengo 85'), d, estado), /Telegram no responde/);
+  assert.equal(celdaEstado(estado, 2, 'TIPO'), 'CONTEO');
+  assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'ABIERTA');
+});
+
 test('atenderBoton_ con Sí escribe el AJUSTE y ejecuta las llamadas del conteo', () => {
   const { ss, sep, estado } = escenario();
   abrirConteo_(estado, { idMensaje: ID_ERIN, contado: 85, saldo: 90 }, AHORA);

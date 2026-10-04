@@ -279,8 +279,22 @@ function filasGasto_(datos, ctx) {
 }
 
 /**
+ * Montos de un depósito: USD, PAB o sin moneda van a la par (sin tasa, igual que antes); otra
+ * moneda se pasa a USD con la misma conversión que un gasto (ctx.aUsd) y guarda el monto original
+ * y la tasa. Sin tasa, DEPÓSITO y TASA USADA quedan PENDIENTE: nunca un número inventado.
+ */
+function montosDeposito_(monto, moneda, fecha, ctx) {
+  if (!moneda || MONEDAS_PAR_TEXTO.includes(moneda)) {
+    return { deposito: monto, moneda: moneda || 'USD', montoOriginal: '', tasaUsada: '' };
+  }
+  const { gastoUsd, tasaUsada } = ctx.aUsd(monto, moneda, fecha);
+  return { deposito: gastoUsd, moneda, montoOriginal: monto, tasaUsada };
+}
+
+/**
  * Depósito: sin fecha usa la del mensaje sin preguntar; sin nombre usa
- * ctx.depositante (CONFIG.DEPOSITANTE_POR_DEFECTO) sin preguntar.
+ * ctx.depositante (CONFIG.DEPOSITANTE_POR_DEFECTO) sin preguntar. En otra moneda, DEPÓSITO es el
+ * monto ya en USD (ver montosDeposito_).
  */
 function filasDeposito_(datos, ctx) {
   const monto = montoPrincipal_(datos);
@@ -289,6 +303,7 @@ function filasDeposito_(datos, ctx) {
   const fechaDato = fechaLeida_(datos.fecha);
   const fecha = fechaDato || ctx.fechaMensaje;
   const primera = (datos.lineas || [])[0];
+  const montos = montosDeposito_(monto, datos.moneda, fecha, ctx);
 
   const fila = {
     ...filaVacia_(ctx),
@@ -297,8 +312,10 @@ function filasDeposito_(datos, ctx) {
     TIPO: TIPO_DEPOSITO_FILA,
     // Mismo mapeo de ortografía que un gasto, sin caso especial.
     PROVEEDOR: ortografiaProveedor_(ctx.historial, datos.proveedor || ctx.depositante),
-    'DEPÓSITO': monto,
-    MONEDA: 'USD',
+    'DEPÓSITO': montos.deposito,
+    MONEDA: montos.moneda,
+    'MONTO ORIGINAL': montos.montoOriginal,
+    'TASA USADA': montos.tasaUsada,
     COMENTARIOS: datos.comentario || (primera && primera.descripcion) || datos.descripcion_corta || '',
     REVISAR: '',
     CASA: casaDe_(datos),

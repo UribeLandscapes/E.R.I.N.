@@ -518,6 +518,42 @@ const deposito = datos({
   descripcion_corta: 'depósito compras semana',
 });
 
+test('filasDeposito_ en otra moneda convierte a USD con la misma tasa que un gasto', () => {
+  const llamadas = [];
+  const aUsd = (monto, moneda, fecha) => {
+    llamadas.push([monto, moneda, fecha]);
+    return { gastoUsd: monto / 4000, tasaUsada: '4000 (2026-09-26)' };
+  };
+  const cop = { ...deposito, moneda: 'COP', total: 100000, lineas: [] };
+  const { filas } = filasDeposito_(cop, contexto({ aUsd }));
+  assert.equal(filas[0]['DEPÓSITO'], 25);
+  assert.equal(filas[0].MONEDA, 'COP');
+  assert.equal(filas[0]['MONTO ORIGINAL'], 100000);
+  assert.equal(filas[0]['TASA USADA'], '4000 (2026-09-26)');
+  assert.equal(filas[0].REVISAR, '');
+  assert.deepEqual(llamadas, [[100000, 'COP', '2026-09-26']]);
+});
+
+test('filasDeposito_ en otra moneda sin tasa deja DEPÓSITO PENDIENTE, nunca un número inventado', () => {
+  const aUsd = () => ({ gastoUsd: 'PENDIENTE', tasaUsada: 'PENDIENTE' });
+  const { filas } = filasDeposito_({ ...deposito, moneda: 'EUR', total: 100, lineas: [] }, contexto({ aUsd }));
+  assert.equal(filas[0]['DEPÓSITO'], 'PENDIENTE');
+  assert.equal(filas[0].MONEDA, 'EUR');
+  assert.equal(filas[0]['MONTO ORIGINAL'], 100);
+  assert.equal(filas[0]['TASA USADA'], 'PENDIENTE');
+});
+
+test('filasDeposito_ en USD, PAB o sin moneda no convierte ni llena MONTO ORIGINAL', () => {
+  const pab = filasDeposito_({ ...deposito, moneda: 'PAB' }, contexto()).filas[0];
+  assert.equal(pab['DEPÓSITO'], 200);
+  assert.equal(pab.MONEDA, 'PAB');
+  assert.equal(pab['MONTO ORIGINAL'], '');
+  assert.equal(pab['TASA USADA'], '');
+  const sin = filasDeposito_({ ...deposito, moneda: null }, contexto()).filas[0];
+  assert.equal(sin['DEPÓSITO'], 200);
+  assert.equal(sin.MONEDA, 'USD');
+});
+
 test('filasDeposito_ caso 5: DEPÓSITO 200, concepto en COMENTARIOS, Beto sin preguntar', () => {
   const { filas, preguntas } = filasDeposito_(deposito, contexto());
   assert.equal(filas.length, 1);

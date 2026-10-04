@@ -87,7 +87,7 @@ function construirRegla_(hoja, regla) {
  * INICIAL DEL MES) pasa a apuntar a la pestaña nueva SOLO si hoy está encadenada al mes anterior
  * (fórmula igual a la del anterior real). Un número literal (p. ej. el 0 de septiembre) u otra
  * fórmula no se toca: reescribirla dejaba #REF! al borrar la pestaña nueva. Devuelve { nombre,
- * indice, anterior, siguiente }.
+ * indice, anterior, siguiente }. Sin mes anterior, solo se re-apunta el "=0" generado.
  */
 function crearPestanaMes_(ss, anio, mes) {
   const nombre = nombrePestanaMes_(anio, mes);
@@ -99,9 +99,13 @@ function crearPestanaMes_(ss, anio, mes) {
   return { nombre, ...pos };
 }
 
-/** Apunta el A3 del mes siguiente a la pestaña nueva, solo si estaba encadenado al mes anterior. */
+/**
+ * Apunta el A3 del mes siguiente a la pestaña nueva, solo si estaba encadenado a lo que había
+ * antes: al mes anterior real, o (pestaña nueva antes del primer mes) a la fórmula generada "=0".
+ * Un número escrito a mano (getFormula() vacío) u otra fórmula nunca se toca.
+ */
 function reencadenarSiguiente_(ss, pos, nombre) {
-  if (!pos.siguiente || !pos.anterior) return;
+  if (!pos.siguiente) return;
   const celda = ss.getSheetByName(pos.siguiente).getRange(`A${FILA_RESUMEN}`);
   if (celda.getFormula() !== formulaSaldoInicialMes_(pos.anterior)) return;
   celda.setFormula(formulaSaldoInicialMes_(nombre));

@@ -182,6 +182,23 @@ test('entre dos meses: saldo inicial desde el anterior y solo el A3 del siguient
   assert.deepEqual(ss.getSheetByName('_ESTADO').llamadas, []);
 });
 
+test('mes nuevo ANTES del primero: el A3 generado ("=0") del siguiente pasa a apuntar al nuevo', () => {
+  const ss = libroFalso(['Septiembre 2026', '_ESTADO']);
+  ss.getSheetByName('Septiembre 2026').formulas.A3 = '=0';
+  const r = crearPestanaMes_(ss, 2026, 8);
+  assert.equal(r.anterior, null);
+  assert.deepEqual(ss.getSheetByName('Septiembre 2026').llamadas, [['A3', 'setFormula', "='Agosto 2026'!E3"]]);
+});
+
+test('mes nuevo ANTES del primero: un A3 con número literal o fórmula propia no se toca', () => {
+  for (const formula of ['', '=100+5', "='Julio 2026'!E3"]) {
+    const ss = libroFalso(['Septiembre 2026']);
+    ss.getSheetByName('Septiembre 2026').formulas.A3 = formula;
+    crearPestanaMes_(ss, 2026, 8);
+    assert.deepEqual(ss.getSheetByName('Septiembre 2026').llamadas, [], `A3 "${formula}"`);
+  }
+});
+
 test('mes siguiente con A3 literal 0 y sin mes anterior: su A3 no se toca (caso factura de julio 2025)', () => {
   const ss = libroFalso(['Julio 2025 (archivo)', 'Septiembre 2026', '_ESTADO']);
   const r = crearPestanaMes_(ss, 2025, 7);
