@@ -137,7 +137,7 @@ Send "ayuda" to your bot. If it answers with the guide, it works.
 
 The bot talks in Spanish. Its help text (`textoGuia_` in `src/Texto.js`) lists what it understands. Below are the same examples with English explanations. The text you type to the bot stays in Spanish.
 
-- An expense: `22.50 efectivo super Riba Smith` (22.50, paid in cash, at the supermarket Riba Smith). With a tip: `22.50 Riba, 1.50 de propina`.
+- An expense: `22.50 efectivo super Whole Foods` (22.50, paid in cash, at the supermarket Whole Foods). With a tip: `22.50 Whole Foods, 1.50 de propina`.
 - A deposit: `me depositaron 250` ("I was given 250").
 - A cash check: `tengo 85` ("I have 85"), to compare against the expected balance.
 - The house: add the name of either house to a message, for example the names you set in `CASAS`. Without one, the row is marked COMPARTIDO (shared).
@@ -258,7 +258,7 @@ Instalación, en resumen:
 
 Ejemplos de uso (la guía que muestra el bot al escribir "ayuda"):
 
-1. Un gasto: "22.50 efectivo super Riba Smith" (con propina: "22.50 Riba, 1.50 de propina")
+1. Un gasto: "22.50 efectivo super Whole Foods" (con propina: "22.50 Whole Foods, 1.50 de propina")
 2. Un depósito: "me depositaron 250"
 3. Revisar la caja: "tengo 85"
 4. La casa: agrega el nombre de la casa secundaria o de la principal

@@ -26,9 +26,9 @@ const col = (nombre) => COLUMNAS_ESTADO.indexOf(nombre);
 
 const FILA_GASTO = Object.freeze({
   FECHA: '2026-09-26',
-  'ID FACTURA': 'RIBASMITH-20260926',
+  'ID FACTURA': 'WHOLEFOODS-20260926',
   TIPO: 'GASTO',
-  PROVEEDOR: 'Riba Smith',
+  PROVEEDOR: 'Whole Foods',
   'DESCRIPCIÓN': 'Supermercado',
   'ARTÍCULOS': 22.5,
   'GASTO (USD)': 22.5,
@@ -40,7 +40,7 @@ const FILA_GASTO = Object.freeze({
 });
 
 const DATOS_GEMINI = Object.freeze({
-  intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-26', moneda: 'USD',
+  intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-26', moneda: 'USD',
   forma_pago: 'DESCONOCIDA', lineas: [], total: 22.5, clase: 'GROCERIES', casa: null,
   comentario: null, descripcion_corta: 'super',
 });
@@ -51,7 +51,7 @@ const registro = (cambios = {}) => filaRegistro_({
   filas: [FILA_GASTO],
   pestana: 'Septiembre 2026',
   datos: DATOS_GEMINI,
-  idFactura: 'RIBASMITH-20260926',
+  idFactura: 'WHOLEFOODS-20260926',
   fechaMensaje: '2026-09-27',
   idMensaje: 501,
   ...cambios,
@@ -70,12 +70,12 @@ test('filaRegistro_ arma la fila de _ESTADO en el orden de las columnas', () => 
   assert.equal(fila[col('ESTADO')], 'ABIERTA');
   const datos = JSON.parse(fila[col('DATOS')]);
   assert.equal(datos.pestana, 'Septiembre 2026');
-  assert.equal(datos.idFactura, 'RIBASMITH-20260926');
+  assert.equal(datos.idFactura, 'WHOLEFOODS-20260926');
   assert.equal(datos.fechaMensaje, '2026-09-27');
   assert.equal(datos.idMensaje, 501);
   assert.deepEqual(datos.datos, DATOS_GEMINI);
   assert.deepEqual(datos.resumen,
-    { tipo: 'gasto', proveedor: 'Riba Smith', monto: 22.5, fecha: '2026-09-26' });
+    { tipo: 'gasto', proveedor: 'Whole Foods', monto: 22.5, fecha: '2026-09-26' });
 });
 
 test('filaRegistro_ junta los ID FILA de todas las líneas', () => {
@@ -142,9 +142,9 @@ test('registrosAbiertos_ lee un CREADO guardado como texto', () => {
 
 test('datosTrasRespuesta_ pasa a los datos lo que la respuesta escribió en las celdas', () => {
   const guardados = { proveedor: null, fecha: null, total: 10, clase: 'PENDIENTE', lineas: [{ tipo: 'ITEM', monto: 10 }] };
-  const porFila = { 'BOT-1': { PROVEEDOR: 'Super 99', FECHA: '2026-09-20', 'CLASE DE GASTO': 'GROCERIES', 'GASTO (USD)': 12.5 } };
+  const porFila = { 'BOT-1': { PROVEEDOR: 'Seven 11', FECHA: '2026-09-20', 'CLASE DE GASTO': 'GROCERIES', 'GASTO (USD)': 12.5 } };
   assert.deepEqual(datosTrasRespuesta_(guardados, porFila), {
-    proveedor: 'Super 99', fecha: '2026-09-20', total: 12.5, clase: 'GROCERIES', lineas: [{ tipo: 'ITEM', monto: 12.5 }],
+    proveedor: 'Seven 11', fecha: '2026-09-20', total: 12.5, clase: 'GROCERIES', lineas: [{ tipo: 'ITEM', monto: 12.5 }],
   });
   assert.equal(guardados.proveedor, null);
 });
@@ -159,15 +159,15 @@ test('datosTrasRespuesta_ guarda el total en la moneda original y no inventa cam
 
 test('fusionarCorreccion_ solo cambia lo que Gemini llenó', () => {
   const cambios = {
-    intencion: 'CORREGIR', proveedor: 'Super 99', fecha: null, moneda: null, forma_pago: 'DESCONOCIDA',
+    intencion: 'CORREGIR', proveedor: 'Seven 11', fecha: null, moneda: null, forma_pago: 'DESCONOCIDA',
     lineas: [], total: null, clase: 'PENDIENTE', casa: null, comentario: null,
   };
-  assert.deepEqual(fusionarCorreccion_(DATOS_GEMINI, cambios), { ...DATOS_GEMINI, proveedor: 'Super 99' });
+  assert.deepEqual(fusionarCorreccion_(DATOS_GEMINI, cambios), { ...DATOS_GEMINI, proveedor: 'Seven 11' });
 });
 
 test('fusionarCorreccion_ conserva la foto y su id cuando la entrada vino de una foto', () => {
   const guardados = { ...DATOS_GEMINI, foto: 'https://drive.google.com/abc', idFoto: 'archivo-1' };
-  const fusion = fusionarCorreccion_(guardados, { intencion: 'CORREGIR', proveedor: 'Super 99' });
+  const fusion = fusionarCorreccion_(guardados, { intencion: 'CORREGIR', proveedor: 'Seven 11' });
   assert.equal(fusion.foto, 'https://drive.google.com/abc');
   assert.equal(fusion.idFoto, 'archivo-1');
 });

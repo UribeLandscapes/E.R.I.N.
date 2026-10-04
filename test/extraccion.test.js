@@ -17,7 +17,7 @@ function extraccionBuena(cambios = {}) {
   return {
     legible: true,
     tipo_documento: 'TICKET',
-    proveedor: 'Riba Smith',
+    proveedor: 'Whole Foods',
     fecha: '2026-07-03',
     moneda: 'USD',
     forma_pago: 'TARJETA',
@@ -29,7 +29,7 @@ function extraccionBuena(cambios = {}) {
     clase: 'GROCERIES',
     casa: null,
     comentario: null,
-    descripcion_corta: 'leche riba smith',
+    descripcion_corta: 'leche whole foods',
     confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'MEDIA' },
     ...cambios,
   };
@@ -139,7 +139,7 @@ test('leerExtraccion_ ignora partes de pensamiento y une el texto', () => {
 test('leerExtraccion_ devuelve los datos limpios de una factura normal', () => {
   const r = leerExtraccion_(respuesta(extraccionBuena()), CATEGORIAS);
   assert.equal(r.ok, true);
-  assert.equal(r.datos.proveedor, 'Riba Smith');
+  assert.equal(r.datos.proveedor, 'Whole Foods');
   assert.equal(r.datos.fecha, '2026-07-03');
   assert.equal(r.datos.moneda, 'USD');
   assert.equal(r.datos.clase, 'GROCERIES');
@@ -179,9 +179,9 @@ test('leerExtraccion_ deja null fecha inválida, moneda no ISO, proveedor vacío
 });
 
 test('leerExtraccion_ pasa la moneda a mayúsculas y limpia espacios', () => {
-  const r = leerExtraccion_(respuesta(extraccionBuena({ moneda: ' cop ', proveedor: ' Súper 99 ' })), CATEGORIAS);
+  const r = leerExtraccion_(respuesta(extraccionBuena({ moneda: ' cop ', proveedor: ' Séven 11 ' })), CATEGORIAS);
   assert.equal(r.datos.moneda, 'COP');
-  assert.equal(r.datos.proveedor, 'Súper 99');
+  assert.equal(r.datos.proveedor, 'Séven 11');
 });
 
 test('leerExtraccion_ corrige valores fuera de enum a su opción prudente', () => {

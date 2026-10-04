@@ -62,7 +62,7 @@ const AHORA = new Date(2026, 8, 27, 9, 30, 0);
 const SELLO = '20260927-093000';
 const CHAT = 1000000001;
 const ID_ERIN = 501;
-const TEXTO_RECIBO = ['SUPER 99, S.A.', 'RUC 155646463-2-2017', 'Pan', '3.25', 'TOTAL  B/. 66.34'].join('\n');
+const TEXTO_RECIBO = ['SEVEN 11, S.A.', 'RUC 1234567-1-2020', 'Pan', '3.25', 'TOTAL  B/. 66.34'].join('\n');
 
 const dos = (n) => String(n).padStart(2, '0');
 function formatear(fecha, formato) {

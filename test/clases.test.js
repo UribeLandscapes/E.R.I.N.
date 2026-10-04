@@ -128,7 +128,7 @@ test('etiquetaAGrupo_ es la inversa de la tabla del punto B', () => {
 test('listaClases_ y textoListaClases_ traen las 17 líneas numeradas', () => {
   const lista = listaClases_();
   assert.equal(lista.length, 17);
-  assert.equal(lista[0], '1. Supermercado (Riba Smith, Rey, Super 99, frutería)');
+  assert.equal(lista[0], '1. Supermercado (Whole Foods, Spar, Seven 11, frutería)');
   assert.equal(lista[13], '14. Garrafones de agua (garrafones y botellones de agua)');
   assert.equal(lista[14], '15. SIPE (pago de la SIPE / Caja de Seguro Social)');
   assert.equal(lista[15], '16. Décimo tercer mes (décimo tercer mes del personal)');
@@ -179,7 +179,7 @@ test('claseDeRespuesta_: sin número, palabra ni etiqueta conocida devuelve null
 });
 
 test('claseDeRespuesta_: compara palabras completas, no subcadenas (hallazgo de revisión)', () => {
-  assert.equal(claseDeRespuesta_('reyes', null, '2026-09-26', []), null);
+  assert.equal(claseDeRespuesta_('spares', null, '2026-09-26', []), null);
   assert.equal(claseDeRespuesta_('autopista', null, '2026-09-26', []), null);
 });
 
@@ -205,8 +205,8 @@ test('claseDeRespuesta_: los grupos específicos vencen a servicios y salarios',
 
 test('claseDeRespuesta_: casos que deben seguir funcionando igual que antes', () => {
   assert.equal(claseDeRespuesta_('super', null, '2026-09-26', []), 'GROCERIES W4 NORTE');
-  assert.equal(claseDeRespuesta_('rey', null, '2026-09-26', []), 'GROCERIES W4 NORTE');
-  assert.equal(claseDeRespuesta_('en el Rey', null, '2026-09-26', []), 'GROCERIES W4 NORTE');
+  assert.equal(claseDeRespuesta_('spar', null, '2026-09-26', []), 'GROCERIES W4 NORTE');
+  assert.equal(claseDeRespuesta_('en el Spar', null, '2026-09-26', []), 'GROCERIES W4 NORTE');
   assert.equal(claseDeRespuesta_('técnicos', null, '2026-09-26', []), 'MAINTENANCE');
   assert.equal(claseDeRespuesta_('era en la farmacia', null, '2026-09-26', []), 'MEDS');
   assert.equal(claseDeRespuesta_('comida', null, '2026-09-26', []), 'STAFF DINNER');
@@ -226,57 +226,57 @@ test('claseDeExtraccion_: una etiqueta vieja o PENDIENTE se deja tal cual', () =
   assert.equal(claseDeExtraccion_('PENDIENTE', null, '2026-09-26'), 'PENDIENTE');
 });
 
-test('claseInferidaProveedor_: 10 filas de Riba Smith todas GROCERIES* infieren el grupo (ejemplo del encargo)', () => {
+test('claseInferidaProveedor_: 10 filas de Whole Foods todas GROCERIES* infieren el grupo (ejemplo del encargo)', () => {
   const historial = Array.from({ length: 10 }, (_, i) => ({
-    proveedor: 'Riba Smith', clase: i % 2 ? 'GROCERIES' : 'GROCERIES W2 NORTE',
+    proveedor: 'Whole Foods', clase: i % 2 ? 'GROCERIES' : 'GROCERIES W2 NORTE',
   }));
-  assert.equal(claseInferidaProveedor_(historial, 'Riba Smith', 'PRINCIPAL', '2026-09-26'), 'GROCERIES W4 NORTE');
+  assert.equal(claseInferidaProveedor_(historial, 'Whole Foods', 'PRINCIPAL', '2026-09-26'), 'GROCERIES W4 NORTE');
 });
 
 test('claseInferidaProveedor_: menos de 2 filas no infiere nada (PENDIENTE)', () => {
-  const historial = [{ proveedor: 'Riba Smith', clase: 'GROCERIES' }];
-  assert.equal(claseInferidaProveedor_(historial, 'Riba Smith', null, '2026-09-26'), null);
+  const historial = [{ proveedor: 'Whole Foods', clase: 'GROCERIES' }];
+  assert.equal(claseInferidaProveedor_(historial, 'Whole Foods', null, '2026-09-26'), null);
 });
 
-test('claseInferidaProveedor_: proveedor NOVEY con clases divididas (MISCELANEOS/MAINTENANCE) no infiere', () => {
+test('claseInferidaProveedor_: proveedor IKEA con clases divididas (MISCELANEOS/MAINTENANCE) no infiere', () => {
   const historial = [
-    { proveedor: 'Novey', clase: 'MISCELANEOS' },
-    { proveedor: 'Novey', clase: 'MISCELANEOS' },
-    { proveedor: 'Novey', clase: 'MAINTENANCE' },
-    { proveedor: 'Novey', clase: 'MAINTENANCE' },
+    { proveedor: 'IKEA', clase: 'MISCELANEOS' },
+    { proveedor: 'IKEA', clase: 'MISCELANEOS' },
+    { proveedor: 'IKEA', clase: 'MAINTENANCE' },
+    { proveedor: 'IKEA', clase: 'MAINTENANCE' },
   ];
-  assert.equal(claseInferidaProveedor_(historial, 'Novey', null, '2026-09-26'), null);
+  assert.equal(claseInferidaProveedor_(historial, 'IKEA', null, '2026-09-26'), null);
 });
 
 test('claseInferidaProveedor_ compara con normalizarProveedor_ (acentos, mayúsculas)', () => {
   const historial = [
-    { proveedor: 'RIBASMITH', clase: 'GROCERIES' },
-    { proveedor: 'riba smith', clase: 'GROCERIES' },
+    { proveedor: 'WHOLEFOODS', clase: 'GROCERIES' },
+    { proveedor: 'whole foods', clase: 'GROCERIES' },
   ];
-  assert.equal(claseInferidaProveedor_(historial, 'Ribá Smith', null, '2026-09-26'), 'GROCERIES W4 NORTE');
+  assert.equal(claseInferidaProveedor_(historial, 'Whóle Foods', null, '2026-09-26'), 'GROCERIES W4 NORTE');
 });
 
 test('claseInferidaProveedor_ sin coincidencias del proveedor devuelve null', () => {
-  assert.equal(claseInferidaProveedor_([{ proveedor: 'Otro', clase: 'GROCERIES' }], 'Riba Smith', null, '2026-09-26'), null);
+  assert.equal(claseInferidaProveedor_([{ proveedor: 'Otro', clase: 'GROCERIES' }], 'Whole Foods', null, '2026-09-26'), null);
 });
 
 // --- claseDeGasto_: dominante gana a la elección de Gemini ---
 
 test('claseDeGasto_: proveedor dominante gana a la clase que eligió Gemini', () => {
-  const historial = Array.from({ length: 3 }, () => ({ proveedor: 'Riba Smith', clase: 'GROCERIES' }));
+  const historial = Array.from({ length: 3 }, () => ({ proveedor: 'Whole Foods', clase: 'GROCERIES' }));
   assert.equal(
-    claseDeGasto_(historial, 'Riba Smith', 'Mantenimiento y reparaciones', 'PRINCIPAL', '2026-09-26'),
+    claseDeGasto_(historial, 'Whole Foods', 'Mantenimiento y reparaciones', 'PRINCIPAL', '2026-09-26'),
     'GROCERIES W4 NORTE',
   );
 });
 
 test('claseDeGasto_: sin dominante usa la elección de Gemini (nombre de grupo o etiqueta vieja)', () => {
-  assert.equal(claseDeGasto_([], 'Riba Smith', 'Supermercado', 'PRINCIPAL', '2026-09-26'), 'GROCERIES W4 NORTE');
-  assert.equal(claseDeGasto_([], 'Riba Smith', 'GROCERIES', null, '2026-09-26'), 'GROCERIES');
+  assert.equal(claseDeGasto_([], 'Whole Foods', 'Supermercado', 'PRINCIPAL', '2026-09-26'), 'GROCERIES W4 NORTE');
+  assert.equal(claseDeGasto_([], 'Whole Foods', 'GROCERIES', null, '2026-09-26'), 'GROCERIES');
 });
 
 test('claseDeGasto_: sin dominante y sin elección clara de Gemini queda PENDIENTE', () => {
-  assert.equal(claseDeGasto_([], 'Riba Smith', 'PENDIENTE', null, '2026-09-26'), 'PENDIENTE');
+  assert.equal(claseDeGasto_([], 'Whole Foods', 'PENDIENTE', null, '2026-09-26'), 'PENDIENTE');
 });
 
 test('claseDeGasto_: proveedor PENDIENTE o vacío nunca usa el historial', () => {

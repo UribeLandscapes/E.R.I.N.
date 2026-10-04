@@ -91,9 +91,9 @@ function deps(cambios) {
 
 function datosGeminiFoto(cambios) {
   return {
-    legible: true, tipo_documento: 'TICKET', proveedor: 'Riba Smith', fecha: '2026-09-27',
+    legible: true, tipo_documento: 'TICKET', proveedor: 'Whole Foods', fecha: '2026-09-27',
     moneda: 'USD', forma_pago: 'EFECTIVO', lineas: [{ tipo: 'ITEM', descripcion: 'compra', monto: 10, confianza: 'ALTA' }],
-    total: 10, clase: 'GROCERIES', casa: null, comentario: null, descripcion_corta: 'super riba smith',
+    total: 10, clase: 'GROCERIES', casa: null, comentario: null, descripcion_corta: 'super whole foods',
     confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
     ...cambios,
   };
@@ -219,7 +219,7 @@ test('leerFotoGemini_ llama al modelo principal con la imagen y la leyenda', () 
   };
   const leido = leerFotoGemini_('b64-datos', 'image/jpeg', 'para la fiesta', CATEGORIAS, CLAVE, HOY);
   assert.equal(leido.ok, true);
-  assert.equal(leido.datos.proveedor, 'Riba Smith');
+  assert.equal(leido.datos.proveedor, 'Whole Foods');
   assert.equal(pedido.url, `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.MODELO_PRINCIPAL}:generateContent`);
   const cuerpo = JSON.parse(pedido.opciones.payload);
   assert.deepEqual(cuerpo.contents[0].parts[0], { inlineData: { mimeType: 'image/jpeg', data: 'b64-datos' } });
@@ -422,7 +422,7 @@ test('leerFotoGemini_ con claveGroq: Gemini falla del todo (500) y Groq (jpeg) l
   };
   const leido = leerFotoGemini_('b64', 'image/jpeg', '', CATEGORIAS, CLAVE, HOY, CLAVE_GROQ);
   assert.equal(leido.ok, true);
-  assert.equal(leido.datos.proveedor, 'Riba Smith');
+  assert.equal(leido.datos.proveedor, 'Whole Foods');
 });
 
 test('leerFotoGemini_ con claveGroq: un PDF cuya Gemini falla usa el OCR de Drive para Groq', () => {
@@ -434,10 +434,10 @@ test('leerFotoGemini_ con claveGroq: un PDF cuya Gemini falla usa el OCR de Driv
       })); })()
       : respuestaFalsa(503, '{}')),
   };
-  const obtenerTextoOcr = () => ({ ok: true, texto: 'TOTAL 12.00 Super 99' });
+  const obtenerTextoOcr = () => ({ ok: true, texto: 'TOTAL 12.00 Seven 11' });
   const leido = leerFotoGemini_('b64', 'application/pdf', '', CATEGORIAS, CLAVE, HOY, CLAVE_GROQ, obtenerTextoOcr);
   assert.equal(leido.ok, true);
-  assert.match(pedidoGroq.messages[1].content[0].text, /TOTAL 12\.00 Super 99/);
+  assert.match(pedidoGroq.messages[1].content[0].text, /TOTAL 12\.00 Seven 11/);
 });
 
 test('leerFotoGemini_ con claveGroq: un PDF sin OCR disponible se rinde con el motivo original de Gemini', () => {
@@ -491,12 +491,12 @@ test('leerFotoGemini_ con claveGroq y un álbum de 4 fotos: Gemini falla, Groq l
       })); })()
       : respuestaFalsa(500, '{}')),
   };
-  const obtenerTextosOcrAlbum = ocrAlbum_('TOTAL 12.00 Super 99', 'TOTAL 8.50 Riba Smith', 'TOTAL 3.00', 'TOTAL 1.00');
+  const obtenerTextosOcrAlbum = ocrAlbum_('TOTAL 12.00 Seven 11', 'TOTAL 8.50 Whole Foods', 'TOTAL 3.00', 'TOTAL 1.00');
   const leido = leerFotoGemini_('b64', 'image/jpeg', '', CATEGORIAS, CLAVE, HOY, CLAVE_GROQ, undefined, obtenerTextosOcrAlbum);
   assert.equal(leido.ok, true);
   const texto = pedidoGroq.messages[1].content[0].text;
   assert.match(texto, /Foto 1 de 4/);
-  assert.match(texto, /Super 99/);
+  assert.match(texto, /Seven 11/);
   assert.match(texto, /Foto 4 de 4/);
 });
 
@@ -525,7 +525,7 @@ test('recibirFoto_ archiva la foto ANTES de llamar a Gemini y devuelve datos le�
   assert.equal(r.ok, true);
   assert.equal(r.archivo.getName(), 'tg-42.jpg');
   assert.equal(r.mimeType, 'image/jpeg');
-  assert.equal(r.datos.proveedor, 'Riba Smith');
+  assert.equal(r.datos.proveedor, 'Whole Foods');
   assert.deepEqual(orden, ['getFile', 'descargar', 'gemini']);
 });
 
@@ -547,7 +547,7 @@ test('recibirFoto_ con un document de imagen (mandada "como archivo") funciona i
   assert.equal(r.ok, true);
   assert.equal(r.archivo.getName(), 'tg-47.jpg');
   assert.equal(r.mimeType, 'image/jpeg');
-  assert.equal(r.datos.proveedor, 'Riba Smith');
+  assert.equal(r.datos.proveedor, 'Whole Foods');
   assert.deepEqual(orden, ['getFile', 'descargar', 'gemini']);
 });
 
@@ -569,7 +569,7 @@ test('recibirFoto_ con claveGroq: un PDF cuya Gemini falla usa deps.ocr(blob, ra
   const d = deps({
     claveGroq: 'gsk_clave-groq-de-prueba',
     descargar: () => blobFalso('application/pdf'),
-    ocr: (blob, raizOcr) => { pedidoOcr = { blob, raizOcr }; return { ok: true, texto: 'TOTAL 12.00 Super 99' }; },
+    ocr: (blob, raizOcr) => { pedidoOcr = { blob, raizOcr }; return { ok: true, texto: 'TOTAL 12.00 Seven 11' }; },
   });
   global.UrlFetchApp = {
     fetch: (url) => (url === URL_GROQ
@@ -581,7 +581,7 @@ test('recibirFoto_ con claveGroq: un PDF cuya Gemini falla usa deps.ocr(blob, ra
   const mensaje = { message_id: 48, caption: '', document: { file_id: 'file-1', mime_type: 'application/pdf', file_size: 2000 } };
   const r = recibirFoto_(mensaje, d, raiz);
   assert.equal(r.ok, true);
-  assert.equal(r.datos.proveedor, 'Riba Smith');
+  assert.equal(r.datos.proveedor, 'Whole Foods');
   assert.equal(pedidoOcr.raizOcr, raiz);
 });
 
@@ -621,19 +621,19 @@ test('recibirFoto_ nunca lanza si la foto del mensaje viene vacía o mal formada
 test('clasificarFotoLeida_ clasifica con la fecha y el proveedor de la primera fila cuando hay filas', () => {
   const raiz = carpetaFalsa('Facturas');
   const archivo = raiz.createFile(blobFalso('image/jpeg'));
-  const plan = { filas: [{ FECHA: '2026-09-27', PROVEEDOR: 'Riba Smith' }] };
-  const datos = { descripcion_corta: 'super riba smith' };
+  const plan = { filas: [{ FECHA: '2026-09-27', PROVEEDOR: 'Whole Foods' }] };
+  const datos = { descripcion_corta: 'super whole foods' };
   const r = clasificarFotoLeida_(archivo, plan, datos, raiz);
-  assert.match(r.ruta, /super riba smith/);
+  assert.match(r.ruta, /super whole foods/);
   assert.equal(r.url, 'https://drive/archivo-1');
 });
 
 test('clasificarFotoLeida_ usa el proveedor de la fila si datos.descripcion_corta viene vacía', () => {
   const raiz = carpetaFalsa('Facturas');
   const archivo = raiz.createFile(blobFalso('image/jpeg'));
-  const plan = { filas: [{ FECHA: '2026-09-27', PROVEEDOR: 'Riba Smith' }] };
+  const plan = { filas: [{ FECHA: '2026-09-27', PROVEEDOR: 'Whole Foods' }] };
   const r = clasificarFotoLeida_(archivo, plan, {}, raiz);
-  assert.match(r.ruta, /Riba Smith/);
+  assert.match(r.ruta, /Whole Foods/);
 });
 
 test('clasificarFotoLeida_ sin filas (fechaDistinta / Supuesto V) deja el archivo en Por clasificar', () => {

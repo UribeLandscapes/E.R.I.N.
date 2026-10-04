@@ -66,7 +66,7 @@ test('selloManual_: fila vacía (nada visible) no se sella', () => {
 });
 
 test('selloManual_: fila manual nueva con algo visible sella ID FILA, ORIGEN y REGISTRADO', () => {
-  const valores = fila({ PROVEEDOR: 'Riba Smith' });
+  const valores = fila({ PROVEEDOR: 'Whole Foods' });
   const ahora = new Date(2026, 8, 28, 9, 30, 0);
   const r = selloManual_(valores, { sello: '20260928-093000', ahora, numeroFila: 8 });
   assert.deepEqual(r, {
@@ -76,7 +76,7 @@ test('selloManual_: fila manual nueva con algo visible sella ID FILA, ORIGEN y R
 
 test('selloManual_: fila manual parcialmente sellada solo rellena lo que falta', () => {
   const valores = fila({
-    PROVEEDOR: 'Riba Smith', ORIGEN: 'MANUAL',
+    PROVEEDOR: 'Whole Foods', ORIGEN: 'MANUAL',
   });
   const ahora = new Date(2026, 8, 28, 9, 30, 0);
   const r = selloManual_(valores, { sello: '20260928-093000', ahora, numeroFila: 8 });
@@ -86,14 +86,14 @@ test('selloManual_: fila manual parcialmente sellada solo rellena lo que falta',
 test('selloManual_: fila manual ya sellada del todo no cambia nada', () => {
   const ahoraVieja = new Date(2026, 8, 27);
   const valores = fila({
-    PROVEEDOR: 'Riba Smith', 'ID FILA': 'MANUAL-20260927-100000-8', ORIGEN: 'MANUAL', REGISTRADO: ahoraVieja,
+    PROVEEDOR: 'Whole Foods', 'ID FILA': 'MANUAL-20260927-100000-8', ORIGEN: 'MANUAL', REGISTRADO: ahoraVieja,
   });
   const r = selloManual_(valores, { sello: '20260928-093000', ahora: new Date(2026, 8, 28), numeroFila: 8 });
   assert.deepEqual(r, {});
 });
 
 test('selloManual_: nunca escribe una columna visible ni TIPO/GRUPO/ID MENSAJE TG', () => {
-  const valores = fila({ PROVEEDOR: 'Riba Smith' });
+  const valores = fila({ PROVEEDOR: 'Whole Foods' });
   const r = selloManual_(valores, { sello: '20260928-093000', ahora: new Date(2026, 8, 28), numeroFila: 8 });
   assert.deepEqual(Object.keys(r).sort(), ['ID FILA', 'ORIGEN', 'REGISTRADO'].sort());
 });
@@ -299,7 +299,7 @@ test('idArchivoDeUrl_: url que no es de Drive, texto suelto, vacío o ausente �
 });
 
 test('descripcionDeNombreFoto_: nombre "AAAA.MM.DD - descripción.ext" saca la descripción', () => {
-  assert.equal(descripcionDeNombreFoto_('2026.07.03 - Super 99 compra.jpg'), 'Super 99 compra');
+  assert.equal(descripcionDeNombreFoto_('2026.07.03 - Seven 11 compra.jpg'), 'Seven 11 compra');
 });
 
 test('descripcionDeNombreFoto_: con contador " (2)" de nombreLibre_ lo quita también', () => {

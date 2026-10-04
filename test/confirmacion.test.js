@@ -22,9 +22,9 @@ const {
 // Una fila por factura: el desglose vive en la misma fila y GASTO (USD) ya es el total.
 const ITEM = Object.freeze({
   FECHA: '2026-09-26',
-  'ID FACTURA': 'RIBASMITH-20260926',
+  'ID FACTURA': 'WHOLEFOODS-20260926',
   TIPO: 'GASTO',
-  PROVEEDOR: 'Riba Smith',
+  PROVEEDOR: 'Whole Foods',
   'DESCRIPCIÓN': 'Supermercado',
   'DEPÓSITO': '',
   'ARTÍCULOS': 21,
@@ -67,7 +67,7 @@ const CIERRE = [
   '',
   '',
   '¿Algo está mal? Respóndeme a este mensaje con el cambio, por ejemplo:',
-  '"la forma de pago es tarjeta", "el proveedor es Super 99", "comentario: para la fiesta".',
+  '"la forma de pago es tarjeta", "el proveedor es Seven 11", "comentario: para la fiesta".',
   'Si no debí anotarlo, respóndeme "borrar".',
 ].join('\n');
 
@@ -80,7 +80,7 @@ test('confirmación de una factura con desglose: texto (a) del Supuesto AA, sin 
   assert.equal(texto, [
     'Listo, agregué el gasto a tu reporte. Estos son los detalles:',
     '<b>Fecha:</b> 26/09/2026',
-    '<b>Proveedor:</b> Riba Smith',
+    '<b>Proveedor:</b> Whole Foods',
     '<b>Descripción:</b> Supermercado; propina',
     '<b>Gasto:</b> 22.50',
     '<b>Desglose:</b> artículos 21.00, otros cargos 1.50',
@@ -241,7 +241,7 @@ test('la corrección usa el encabezado del texto (d)', () => {
 
 test('resumenEntrada_ guarda lo mínimo para la pregunta de borrar', () => {
   assert.deepEqual(resumenEntrada_([CON_PROPINA]),
-    { tipo: 'gasto', proveedor: 'Riba Smith', monto: 22.5, fecha: '2026-09-26' });
+    { tipo: 'gasto', proveedor: 'Whole Foods', monto: 22.5, fecha: '2026-09-26' });
   assert.deepEqual(resumenEntrada_([DEPOSITO]),
     { tipo: 'deposito', proveedor: 'Beto', monto: 500, fecha: '2026-09-26' });
 });
@@ -257,7 +257,7 @@ test('resumenEntrada_ deja el monto en null si no se puede sumar', () => {
 
 test('textoPedirBorrado_ es el texto (e) del Supuesto AA', () => {
   assert.equal(textoPedirBorrado_(resumenEntrada_([CON_PROPINA])),
-    '¿Segura que quieres borrar el gasto de Riba Smith por 22.50 del 26/09/2026?');
+    '¿Segura que quieres borrar el gasto de Whole Foods por 22.50 del 26/09/2026?');
   assert.equal(textoPedirBorrado_(resumenEntrada_([DEPOSITO])),
     '¿Segura que quieres borrar el depósito de Beto por 500.00 del 26/09/2026?');
 });

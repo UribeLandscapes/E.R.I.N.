@@ -372,7 +372,7 @@ test('si falla escribir al tocar el botón de fecha, la pregunta sigue abierta y
   guardarPregunta_(estado, filaFecha_({
     creado: AHORA,
     idMensaje: ID_ERIN,
-    datos: datosGemini({ intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-15', total: 25, clase: 'GROCERIES' }),
+    datos: datosGemini({ intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-15', total: 25, clase: 'GROCERIES' }),
     fechaMensaje: '2026-09-27',
   }));
   const d = dependencias(ss);
@@ -380,7 +380,7 @@ test('si falla escribir al tocar el botón de fecha, la pregunta sigue abierta y
   conEscrituraRota_(sep, () => assert.throws(() => atenderBoton_(boton, d, estado), /Sheets no responde/));
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'ABIERTA');
   atenderBoton_(boton, d, estado);
-  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Whole Foods');
   assert.ok(COLUMNAS.every((c, i) => c === 'GRUPO' || sep.leer(9, i + 1) === ''));
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
 });
@@ -389,22 +389,22 @@ test('atenderMensaje_ aplica a la pregunta citada con "Responder" aunque la inte
   const { ss, sep, estado } = escenario();
   ponerGemini([
     datosGemini({ intencion: 'GASTO', fecha: '2026-09-27', total: 25, clase: 'GROCERIES' }),
-    datosGemini({ intencion: 'GASTO', proveedor: 'Riba Smith' }),
+    datosGemini({ intencion: 'GASTO', proveedor: 'Whole Foods' }),
   ]);
   const d = dependencias(ss);
   atenderMensaje_(mensaje('25 en el super'), d, estado);
-  atenderMensaje_(mensaje('Riba Smith', { reply_to_message: { message_id: 901 } }), d, estado);
+  atenderMensaje_(mensaje('Whole Foods', { reply_to_message: { message_id: 901 } }), d, estado);
   assert.deepEqual(d.llamadas[1], ['sendMessage', { chat_id: CHAT, text: 'Listo, lo anoté.' }]);
-  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Whole Foods');
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
 });
 
 test('atenderMensaje_ con intención RESPUESTA y ninguna pregunta abierta lo dice', () => {
   const { ss, sep, estado } = escenario();
-  ponerGemini(datosGemini({ intencion: 'RESPUESTA', proveedor: 'Riba Smith' }));
+  ponerGemini(datosGemini({ intencion: 'RESPUESTA', proveedor: 'Whole Foods' }));
   const d = dependencias(ss);
   sep.escrituras.length = 0;
-  atenderMensaje_(mensaje('Riba Smith'), d, estado);
+  atenderMensaje_(mensaje('Whole Foods'), d, estado);
   assert.deepEqual(d.llamadas, [['sendMessage', { chat_id: CHAT, text: TEXTO_SIN_PREGUNTA }]]);
   assert.deepEqual(sep.escrituras, []);
   assert.equal(estado.anexadas.length, 1);
@@ -670,11 +670,11 @@ test('atenderBoton_ con un callback_data desconocido no lanza y solo contesta el
 test('atenderMensaje_ con la fecha del recibo de otro mes pregunta con botones y no escribe nada', () => {
   const { ss, sep, estado } = escenario();
   ponerGemini(datosGemini({
-    intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
+    intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
   }));
   const d = dependencias(ss);
   sep.escrituras.length = 0;
-  atenderMensaje_(mensaje('25 en Riba Smith el 15 de agosto'), d, estado);
+  atenderMensaje_(mensaje('25 en Whole Foods el 15 de agosto'), d, estado);
   assert.deepEqual(d.llamadas, [['sendMessage', {
     chat_id: CHAT,
     text: 'El recibo es del 2026-08-15 pero lo mandaste el 2026-09-27, de otro mes. ¿Con cuál lo registro?',
@@ -693,10 +693,10 @@ test('atenderMensaje_ con la fecha del recibo de otro mes pregunta con botones y
 test('atenderMensaje_ con fecha del recibo del mismo mes no pregunta nada de fecha (comportamiento actual)', () => {
   const { ss, sep, estado } = escenario();
   ponerGemini(datosGemini({
-    intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-01', total: 25, clase: 'GROCERIES',
+    intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-01', total: 25, clase: 'GROCERIES',
   }));
   const d = dependencias(ss);
-  atenderMensaje_(mensaje('25 en Riba Smith el 1'), d, estado);
+  atenderMensaje_(mensaje('25 en Whole Foods el 1'), d, estado);
   assert.equal(filaDe(sep, 8).FECHA, '2026-09-01');
   assert.equal(estado.anexadas.length, 2); // encabezado + el REGISTRO de la confirmación
 });
@@ -707,7 +707,7 @@ test('atenderBoton_ fecha:recibo escribe el gasto en el mes del recibo (lo crea)
     creado: AHORA,
     idMensaje: ID_ERIN,
     datos: datosGemini({
-      intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
+      intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
     }),
     fechaMensaje: '2026-09-27',
   }));
@@ -725,8 +725,8 @@ test('atenderBoton_ fecha:recibo escribe el gasto en el mes del recibo (lo crea)
   assert.ok(agosto);
   const fila = filaDe(agosto, 6);
   assert.equal(fila.FECHA, '2026-08-15');
-  assert.equal(fila.PROVEEDOR, 'Riba Smith');
-  assert.equal(fila['ID FACTURA'], 'RIBASMITH-20260815');
+  assert.equal(fila.PROVEEDOR, 'Whole Foods');
+  assert.equal(fila['ID FACTURA'], 'WHOLEFOODS-20260815');
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
 });
 
@@ -736,7 +736,7 @@ test('atenderBoton_ fecha:envio escribe el gasto con el día que el usuario lo m
     creado: AHORA,
     idMensaje: ID_ERIN,
     datos: datosGemini({
-      intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
+      intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
     }),
     fechaMensaje: '2026-09-27',
   }));
@@ -748,7 +748,7 @@ test('atenderBoton_ fecha:envio escribe el gasto con el día que el usuario lo m
   }, d, estado);
   const fila = filaDe(sep, 8);
   assert.equal(fila.FECHA, '2026-09-27');
-  assert.equal(fila['ID FACTURA'], 'RIBASMITH-20260927');
+  assert.equal(fila['ID FACTURA'], 'WHOLEFOODS-20260927');
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA');
 });
 
@@ -803,7 +803,7 @@ test('atenderBoton_ fecha:recibo sin mensaje accesible no intenta quitar los bot
     creado: AHORA,
     idMensaje: ID_ERIN,
     datos: datosGemini({
-      intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
+      intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-08-15', total: 25, clase: 'GROCERIES',
     }),
     fechaMensaje: '2026-09-27',
   }));
@@ -820,7 +820,7 @@ test('flujo en vivo: gasto sin fecha, depósito sin nombre y ninguna pregunta de
   ponerGemini([
     datosGemini({
       intencion: 'GASTO',
-      proveedor: 'Riba Smith',
+      proveedor: 'Whole Foods',
       clase: 'GROCERIES',
       lineas: [
         { tipo: 'ITEM', descripcion: 'compras', monto: 20, confianza: 'ALTA' },
@@ -833,8 +833,8 @@ test('flujo en vivo: gasto sin fecha, depósito sin nombre y ninguna pregunta de
   ]);
   const d = dependencias(ss);
 
-  // 1) "Riba Smith 20 + 5 propina efectivo": sin fecha, se usa la de hoy, sin preguntar.
-  atenderMensaje_(mensaje('Riba Smith 20 + 5 propina efectivo'), d, estado);
+  // 1) "Whole Foods 20 + 5 propina efectivo": sin fecha, se usa la de hoy, sin preguntar.
+  atenderMensaje_(mensaje('Whole Foods 20 + 5 propina efectivo'), d, estado);
   // Una sola fila: los 20 en ARTÍCULOS y los 5 de propina en OTROS CARGOS.
   const filaItem = filaDe(sep, 7);
   assert.equal(filaItem.FECHA, '2026-09-27');
@@ -887,7 +887,7 @@ test('atenderMensaje_ manda a Gemini varias preguntas abiertas (ordenadas por fe
 // --- Defecto E2: "super"/"supermercado" a la pregunta de clase ---
 
 const GASTO_SIN_CLASE = {
-  FECHA: '2026-09-26', 'ID FACTURA': 'RIBASMITH-20260926', TIPO: 'GASTO', PROVEEDOR: 'Riba Smith',
+  FECHA: '2026-09-26', 'ID FACTURA': 'WHOLEFOODS-20260926', TIPO: 'GASTO', PROVEEDOR: 'Whole Foods',
   'ARTÍCULOS': 22.5, 'GASTO (USD)': 22.5, MONEDA: 'USD', 'CLASE DE GASTO': 'PENDIENTE',
   'ID FILA': 'BOT-20260926-090000-501-1', ORIGEN: 'BOT', 'ID MENSAJE TG': 501, REGISTRADO: AHORA,
 };
@@ -942,10 +942,10 @@ function conDosPreguntasAbiertas_(estado) {
 test('atenderMensaje_ sin "Responder": un nombre va a la pregunta de proveedor y deja abierta la del total', () => {
   const { ss, sep, estado } = escenario({ filas: [GASTO_SIN_PROVEEDOR, GASTO_SIN_TOTAL] });
   conDosPreguntasAbiertas_(estado);
-  ponerGemini(datosGemini({ intencion: 'RESPUESTA', proveedor: 'Riba Smith' }));
+  ponerGemini(datosGemini({ intencion: 'RESPUESTA', proveedor: 'Whole Foods' }));
   const d = dependencias(ss);
-  atenderMensaje_(mensaje('Riba Smith'), d, estado);
-  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Riba Smith');
+  atenderMensaje_(mensaje('Whole Foods'), d, estado);
+  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Whole Foods');
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'CERRADA'); // proveedor: contestada
   assert.equal(celdaEstado(estado, 3, 'ESTADO'), 'ABIERTA'); // total: sigue esperando
 });

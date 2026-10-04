@@ -15,7 +15,7 @@ const COLUMNA_DE_CAMPO = Object.freeze({ [CAMPO_PROVEEDOR]: 'PROVEEDOR', [CAMPO_
 // Un nombre de comercio no pasa de esto; más largo ya es una frase (un gasto nuevo, por ejemplo).
 const LARGO_TEXTO_PROVEEDOR = 60;
 // Señales de que el texto es un gasto y no un nombre: un monto con decimales o una moneda escrita.
-// "Super 99" sigue siendo un proveedor válido: el entero suelto no cuenta.
+// "Seven 11" sigue siendo un proveedor válido: el entero suelto no cuenta.
 const MONTO_CON_DECIMALES = /(?<![\w.,\-/])\d+[.,]\d{1,2}(?![\w\-/])/;
 const MONEDA_ESCRITA = /B\s*\/|\$|\bUSD\b/i;
 

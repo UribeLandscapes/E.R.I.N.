@@ -274,7 +274,7 @@ test('procesarEdicion_: filas 1 a 5 (encabezados) se ignoran', () => {
 
 test('procesarEdicion_: pegar varias filas manuales sella cada una con su propio número de fila', () => {
   const mes = hojaFalsa('Septiembre 2026', fusionar(
-    filaSembrada(6, { PROVEEDOR: 'Riba Smith' }),
+    filaSembrada(6, { PROVEEDOR: 'Whole Foods' }),
     filaSembrada(7, { PROVEEDOR: 'Xtra' }),
   ));
   const estado = hojaFalsa('_ESTADO');
@@ -377,7 +377,7 @@ test('procesarEdicion_: pregunta con CLAVE vacía (sin idMensajeBot) se cierra s
 });
 
 test('procesarEdicion_: sin pestaña _ESTADO todavía (recién creado el libro) no truena', () => {
-  const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, { PROVEEDOR: 'Riba Smith' }));
+  const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, { PROVEEDOR: 'Whole Foods' }));
   assert.doesNotThrow(() => procesarEdicion_(
     { source: libroFalso([mes]), range: rangoFalso(mes, 6, 1) }, deps(),
   ));
@@ -390,13 +390,13 @@ const urlFoto = (id) => `https://drive.google.com/file/d/${id}/view?usp=drivesdk
 
 test('moverFotoSiCambioFecha_: foto ya clasificada, FECHA editada a una fecha válida → la mueve y renombra', () => {
   const porClasificar = carpetaFalsa('Por clasificar');
-  const archivo = archivoFalso('ID1', '2026.07.03 - Super 99 compra.jpg', porClasificar);
+  const archivo = archivoFalso('ID1', '2026.07.03 - Seven 11 compra.jpg', porClasificar);
   const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, { FECHA: '2026-08-15', FOTO: urlFoto('ID1') }));
   const d = deps({ archivos: { ID1: archivo } });
   moverFotoSiCambioFecha_(mes, 6, ['FECHA'], d);
   assert.equal(archivo.movidas, 1);
   assert.equal(archivo.carpeta.nombre, '8. Agosto');
-  assert.equal(archivo.nombre, '2026.08.15 - Super 99 compra.jpg');
+  assert.equal(archivo.nombre, '2026.08.15 - Seven 11 compra.jpg');
 });
 
 test('moverFotoSiCambioFecha_: nombre todavía sin clasificar (Por clasificar) usa PROVEEDOR como descripción', () => {
@@ -473,7 +473,7 @@ test('procesarEdicion_: pegar dos filas con FECHA y FOTO mueve la foto de cada u
 
 test('procesarEdicion_: si Drive falla al mover la foto, solo se loguea y sigue el resto (sello/REVISAR/preguntas)', () => {
   const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, {
-    FECHA: '2026-08-15', FOTO: urlFoto('NO-SEMBRADO'), PROVEEDOR: 'Riba Smith',
+    FECHA: '2026-08-15', FOTO: urlFoto('NO-SEMBRADO'), PROVEEDOR: 'Whole Foods',
   }));
   const estado = hojaFalsa('_ESTADO');
   const d = deps(); // archivoPorId lanza: 'NO-SEMBRADO' no está en `archivos`
@@ -490,7 +490,7 @@ test('procesarEdicion_: si Drive falla al mover la foto, solo se loguea y sigue 
 // --- manejarEdicion_ (candado + nunca lanza) ---
 
 test('manejarEdicion_: sin candado registra "alEditar sin candado" y no escribe nada', () => {
-  const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, { PROVEEDOR: 'Riba Smith' }));
+  const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, { PROVEEDOR: 'Whole Foods' }));
   const estado = hojaFalsa('_ESTADO');
   const d = deps({ candado: candadoFalso(false) });
   conSpyError((avisos) => {
@@ -501,7 +501,7 @@ test('manejarEdicion_: sin candado registra "alEditar sin candado" y no escribe 
 });
 
 test('manejarEdicion_: suelta el candado incluso si procesarEdicion_ revienta', () => {
-  const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, { PROVEEDOR: 'Riba Smith' }));
+  const mes = hojaFalsa('Septiembre 2026', filaSembrada(6, { PROVEEDOR: 'Whole Foods' }));
   const candado = candadoFalso(true);
   const d = deps({ candado });
   d.formatear = () => { throw new Error('boom'); };

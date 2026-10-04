@@ -17,9 +17,9 @@ const GRUPOS_CLASE = Object.freeze([
   {
     numero: 1,
     nombre: 'Supermercado',
-    ejemplos: 'Riba Smith, Rey, Super 99, frutería',
+    ejemplos: 'Whole Foods, Spar, Seven 11, frutería',
     palabras: [
-      'super', 'supermercado', 'riba smith', 'ribasmith', 'rey', 'super 99', 'super99', 'fruteria',
+      'super', 'supermercado', 'whole foods', 'wholefoods', 'spar', 'seven 11', 'seven11', 'fruteria',
     ],
   },
   {
@@ -46,8 +46,8 @@ const GRUPOS_CLASE = Object.freeze([
   {
     numero: 6,
     nombre: 'Mantenimiento y reparaciones',
-    ejemplos: 'Novey, técnicos',
-    palabras: ['mantenimiento', 'reparacion', 'reparaciones', 'novey', 'tecnico'],
+    ejemplos: 'IKEA, técnicos',
+    palabras: ['mantenimiento', 'reparacion', 'reparaciones', 'ikea', 'tecnico'],
   },
   {
     numero: 7,
@@ -202,7 +202,7 @@ function etiquetaAGrupo_(etiqueta) {
   return null;
 }
 
-/** "1. Supermercado (Riba Smith, Rey, Super 99, frutería)", una línea por grupo. */
+/** "1. Supermercado (Whole Foods, Spar, Seven 11, frutería)", una línea por grupo. */
 const listaClases_ = () => GRUPOS_CLASE.map((g) => `${g.numero}. ${g.nombre} (${g.ejemplos})`);
 
 /**
@@ -238,7 +238,7 @@ function escaparRegex_(palabra) {
 /**
  * true si `normalizado` (ya sin tildes y en minúsculas) trae la palabra `p` completa: al inicio o
  * fin del texto, o separada por algo que no sea letra/número, con un plural en "s" opcional (pero
- * no "es": "rey" no debe hacer match con "reyes").
+ * no "es": "spar" no debe hacer match con "spares").
  */
 function tienePalabraCompleta_(normalizado, p) {
   const re = new RegExp(`(?:^|[^a-z0-9])${escaparRegex_(p)}s?(?:$|[^a-z0-9])`);

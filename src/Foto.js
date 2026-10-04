@@ -108,7 +108,7 @@ function instruccionFoto_(hoy) {
     '4. La propina solo va (línea PROPINA) si se pagó: sumada al total cobrado, en el voucher',
     'o escrita a mano. Una propina sugerida sola no se anota. Si hay dos totales y no se sabe',
     'cuál se pagó, total en null con confianza BAJA.',
-    '5. Proveedor = nombre comercial del letrero (Super 99, Riba Smith, El Rey, PriceSmart),',
+    '5. Proveedor = nombre comercial del letrero (Seven 11, Whole Foods, Spar, Costco),',
     'no la razón social "S.A." ni el RUC. En una captura de Yappy o transferencia, el',
     'proveedor es el destinatario.',
     '6. Fecha = la de la compra o del pago. En facturas de servicios, la de pago si se ve',

@@ -56,8 +56,8 @@ function contexto(cambios) {
 
 // Ticket de súper sintético, con RUC, número de factura y caja.
 const TICKET_SUPER = [
-  'SUPER 99, S.A.',
-  'RUC 155646463-2-2017 DV 86',
+  'SEVEN 11, S.A.',
+  'RUC 1234567-1-2020 DV 12',
   'TEL 6123-4567',
   'FACTURA No. 0001234567',
   'CAJA 07  CAJERO 12',
@@ -117,7 +117,7 @@ test('totalDeOcr_ toma el último monto de la línea de total', () => {
 });
 
 test('totalDeOcr_ ignora el RUC, el teléfono y el número de factura de la misma línea', () => {
-  const texto = 'TOTAL FACTURA No. 0001234567 RUC 155646463-2-2017 TEL 6123-4567';
+  const texto = 'TOTAL FACTURA No. 0001234567 RUC 1234567-1-2020 TEL 6123-4567';
   assert.equal(totalDeOcr_(texto), null);
 });
 
@@ -415,15 +415,15 @@ test('llenarPendientes_ solo escribe donde la hoja sigue diciendo PENDIENTE', ()
   const valores = {
     PROVEEDOR: 'PENDIENTE', 'FORMA DE PAGO': 'EFECTIVO', 'CLASE DE GASTO': 'PENDIENTE',
   };
-  const nuevos = { PROVEEDOR: 'Super 99', 'FORMA DE PAGO': 'TARJETA', 'CLASE DE GASTO': 'S5. Alimentación' };
+  const nuevos = { PROVEEDOR: 'Seven 11', 'FORMA DE PAGO': 'TARJETA', 'CLASE DE GASTO': 'S5. Alimentación' };
   assert.deepEqual(llenarPendientes_(valores, nuevos),
-    { PROVEEDOR: 'Super 99', 'CLASE DE GASTO': 'S5. Alimentación' });
+    { PROVEEDOR: 'Seven 11', 'CLASE DE GASTO': 'S5. Alimentación' });
 });
 
 test('llenarPendientes_ nunca toca el total confirmado ni su moneda', () => {
   const valores = { 'GASTO (USD)': 'PENDIENTE', MONEDA: 'PENDIENTE', PROVEEDOR: 'PENDIENTE' };
-  assert.deepEqual(llenarPendientes_(valores, { 'GASTO (USD)': 70, MONEDA: 'EUR', PROVEEDOR: 'Riba Smith' }),
-    { PROVEEDOR: 'Riba Smith' });
+  assert.deepEqual(llenarPendientes_(valores, { 'GASTO (USD)': 70, MONEDA: 'EUR', PROVEEDOR: 'Whole Foods' }),
+    { PROVEEDOR: 'Whole Foods' });
 });
 
 test('llenarPendientes_ no escribe valores vacíos ni otro PENDIENTE', () => {
@@ -516,7 +516,7 @@ test('leerBotonFormaPago_ devuelve la forma de pago en mayúsculas', () => {
 test('caso 9: una foto sin monto legible no escribe filas, pregunta el monto y guarda el enlace', () => {
   const datos = {
     intencion: 'GASTO',
-    proveedor: 'Super 99',
+    proveedor: 'Seven 11',
     fecha: '2026-09-27',
     total: null,
     lineas: [],

@@ -186,7 +186,7 @@ test('leerExtraccion_ lee sin cambios una respuesta realista de Groq traducida p
   const extraccion = {
     legible: true,
     tipo_documento: 'TICKET',
-    proveedor: 'Super 99',
+    proveedor: 'Seven 11',
     fecha: '2026-09-20',
     moneda: 'USD',
     forma_pago: 'EFECTIVO',
@@ -195,7 +195,7 @@ test('leerExtraccion_ lee sin cambios una respuesta realista de Groq traducida p
     clase: 'GROCERIES',
     casa: null,
     comentario: null,
-    descripcion_corta: 'leche super 99',
+    descripcion_corta: 'leche seven 11',
     confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
   };
   const contenidoGroq = `<think>leo el recibo</think>\n${JSON.stringify(extraccion)}`;
@@ -205,7 +205,7 @@ test('leerExtraccion_ lee sin cambios una respuesta realista de Groq traducida p
   const r = leerExtraccion_(respuestaGemini, CATEGORIAS, false);
 
   assert.equal(r.ok, true);
-  assert.equal(r.datos.proveedor, 'Super 99');
+  assert.equal(r.datos.proveedor, 'Seven 11');
   assert.equal(r.datos.total, 1.55);
   assert.equal(r.datos.clase, 'GROCERIES');
   assert.equal(r.datos.lineas.length, 1);
@@ -292,10 +292,10 @@ test('rutaGroqFoto_ da null para webp/heic/heif u otro mimeType, o sin mimeType'
 // --- cuerpoGeminiConTextoOcr_ (PDF/álbumes >3 fotos por el OCR de Drive) ---
 
 test('cuerpoGeminiConTextoOcr_ arma un cuerpo de foto con el texto del OCR en vez de la imagen', () => {
-  const cuerpo = cuerpoGeminiConTextoOcr_('TOTAL 12.50\nSuper 99', 'efectivo', CATEGORIAS, HOY);
+  const cuerpo = cuerpoGeminiConTextoOcr_('TOTAL 12.50\nSeven 11', 'efectivo', CATEGORIAS, HOY);
   assert.equal(cuerpo.systemInstruction.parts[0].text, instruccionFoto_(HOY));
   assert.deepEqual(cuerpo.contents[0].parts, [
-    { text: 'Texto leído por OCR de la foto (puede tener errores de lectura):\nTOTAL 12.50\nSuper 99' },
+    { text: 'Texto leído por OCR de la foto (puede tener errores de lectura):\nTOTAL 12.50\nSeven 11' },
     { text: 'efectivo' },
   ]);
   assert.deepEqual(cuerpo.generationConfig, {

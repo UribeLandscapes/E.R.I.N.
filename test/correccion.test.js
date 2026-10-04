@@ -168,16 +168,16 @@ function filaRegistroDe(estado, clave) {
 const filaVacia = (hoja, numero) => COLUMNAS.every((c, i) => c === 'GRUPO'
   || hoja.leer(numero, i + 1) === '');
 
-const GASTO_RIBA = datosGemini({
-  intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-27', total: 22.5, clase: 'GROCERIES',
+const GASTO_WHOLEFOODS = datosGemini({
+  intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-27', total: 22.5, clase: 'GROCERIES',
 });
 
-/** Anota el gasto de 22.50 de Riba Smith y devuelve el escenario ya con su REGISTRO abierto. */
-function conEntrada(extracciones, datosEntrada = GASTO_RIBA, opcionesEscenario = {}) {
+/** Anota el gasto de 22.50 de Whole Foods y devuelve el escenario ya con su REGISTRO abierto. */
+function conEntrada(extracciones, datosEntrada = GASTO_WHOLEFOODS, opcionesEscenario = {}) {
   const caso = escenario(opcionesEscenario);
   const pedidos = ponerGemini([datosEntrada, ...extracciones]);
   const d = dependencias(caso.ss);
-  atenderMensaje_(mensaje('22.50 super Riba Smith'), d, caso.estado);
+  atenderMensaje_(mensaje('22.50 super Whole Foods'), d, caso.estado);
   return { ...caso, d, pedidos };
 }
 
@@ -233,20 +233,20 @@ test('registro ilegible o fila anterior al corte impide borrar', () => {
 });
 
 test('corrección con celda a mano conserva la fila y el REGISTRO', () => {
-  const { sep, estado, d } = conEntrada([datosGemini({ intencion: 'CORREGIR', proveedor: 'Super 99' })]);
+  const { sep, estado, d } = conEntrada([datosGemini({ intencion: 'CORREGIR', proveedor: 'Seven 11' })]);
   const id = filaDe(sep, 7)['ID FILA'];
   const escrituras = sep.escrituras.length;
   conProteccion_(registroProtegido_(id), () => atenderMensaje_(
-    mensaje('el proveedor es Super 99', { message_id: ID_ERIN + 1 }), d, estado,
+    mensaje('el proveedor es Seven 11', { message_id: ID_ERIN + 1 }), d, estado,
   ));
   assert.equal(textoEnviado(d, 1), TEXTO_NO_CORRIJO_MANUAL);
   assert.equal(sep.escrituras.length, escrituras);
-  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Whole Foods');
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'ABIERTA');
 });
 
 test('corregir avisa la anotación que llegó al limpiar la fila original y confirma igual', () => {
-  const { sep, estado, d, ss } = conEntrada([datosGemini({ intencion: 'CORREGIR', proveedor: 'Super 99' })]);
+  const { sep, estado, d, ss } = conEntrada([datosGemini({ intencion: 'CORREGIR', proveedor: 'Seven 11' })]);
   const id = filaDe(sep, 7)['ID FILA'];
   const ediciones = hojaFalsa('_EDICIONES', { protegerDesborde: false });
   ediciones.appendRow(['FECHA', 'PESTAÑA', 'ID FILA', 'COLUMNAS']);
@@ -270,7 +270,7 @@ test('corregir avisa la anotación que llegó al limpiar la fila original y conf
   const leer = global.registroParaEscribir_;
   global.registroParaEscribir_ = require('../src/EdicionesApp.js').registroParaEscribir_;
   console.error = (texto) => avisos.push(texto);
-  try { atenderMensaje_(mensaje('el proveedor es Super 99', { message_id: ID_ERIN + 1 }), d, estado); } finally {
+  try { atenderMensaje_(mensaje('el proveedor es Seven 11', { message_id: ID_ERIN + 1 }), d, estado); } finally {
     console.error = real;
     global.registroParaEscribir_ = leer;
   }
@@ -279,19 +279,19 @@ test('corregir avisa la anotación que llegó al limpiar la fila original y conf
 });
 
 test('una anotación en la segunda fila bloquea toda la corrección', () => {
-  const { sep, estado, d } = conEntrada([datosGemini({ intencion: 'CORREGIR', proveedor: 'Super 99' })]);
+  const { sep, estado, d } = conEntrada([datosGemini({ intencion: 'CORREGIR', proveedor: 'Seven 11' })]);
   const primera = filaDe(sep, 7);
   const segundaId = 'BOT-20260927-093001-501-2';
   ponerFila(sep, 8, { ...primera, 'ID FILA': segundaId });
   estado.poner(2, COLUMNAS_ESTADO.indexOf('ID FILAS') + 1, `${primera['ID FILA']},${segundaId}`);
   const escrituras = sep.escrituras.length;
   conProteccion_(registroProtegido_(segundaId), () => atenderMensaje_(
-    mensaje('el proveedor es Super 99', { message_id: ID_ERIN + 1 }), d, estado,
+    mensaje('el proveedor es Seven 11', { message_id: ID_ERIN + 1 }), d, estado,
   ));
   assert.equal(textoEnviado(d, 1), TEXTO_NO_CORRIJO_MANUAL);
   assert.equal(sep.escrituras.length, escrituras);
-  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Riba Smith');
-  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Riba Smith');
+  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Whole Foods');
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Whole Foods');
   assert.equal(celdaEstado(estado, 2, 'ESTADO'), 'ABIERTA');
 });
 
@@ -305,11 +305,11 @@ test('la confirmación de un gasto deja un REGISTRO abierto con la clave de ese 
   assert.equal(celdaEstado(estado, fila, 'ID FILAS'), filaDe(sep, 7)['ID FILA']);
   const datos = datosEstado(estado, fila);
   assert.equal(datos.pestana, 'Septiembre 2026');
-  assert.equal(datos.idFactura, 'RIBASMITH-20260927');
+  assert.equal(datos.idFactura, 'WHOLEFOODS-20260927');
   assert.equal(datos.idMensaje, ID_ERIN);
   assert.equal(datos.fechaMensaje, '2026-09-27');
-  assert.equal(datos.datos.proveedor, 'Riba Smith');
-  assert.deepEqual(datos.resumen, { tipo: 'gasto', proveedor: 'Riba Smith', monto: 22.5, fecha: '2026-09-27' });
+  assert.equal(datos.datos.proveedor, 'Whole Foods');
+  assert.deepEqual(datos.resumen, { tipo: 'gasto', proveedor: 'Whole Foods', monto: 22.5, fecha: '2026-09-27' });
 });
 
 test('la confirmación con algo pendiente deja la pregunta y el REGISTRO con la misma clave', () => {
@@ -358,7 +358,7 @@ test('"de esos 22.50, 1.50 fue propina" reescribe la entrada: filas nuevas, viej
   assert.equal(item['GASTO (USD)'], 22.5);
   assert.equal(item.TIPO, 'GASTO');
   // Mismo ID FACTURA que antes: no aparece un "-2".
-  assert.equal(item['ID FACTURA'], 'RIBASMITH-20260927');
+  assert.equal(item['ID FACTURA'], 'WHOLEFOODS-20260927');
   assert.equal(item['ID MENSAJE TG'], ID_ERIN);
   assert.match(textoEnviado(d, 1), /^Listo, corregí el gasto\. Así quedó:/);
   assert.match(textoEnviado(d, 1), /^<b>Descripción:<\/b> compras; propina$/m);
@@ -366,22 +366,22 @@ test('"de esos 22.50, 1.50 fue propina" reescribe la entrada: filas nuevas, viej
 });
 
 test('la corrección cierra el REGISTRO viejo y abre uno nuevo con las filas nuevas', () => {
-  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'Super 99' });
+  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'Seven 11' });
   const { sep, estado, d } = conEntrada([correccion]);
-  atenderMensaje_(mensaje('el proveedor es Super 99', { message_id: ID_ERIN + 1 }), d, estado);
+  atenderMensaje_(mensaje('el proveedor es Seven 11', { message_id: ID_ERIN + 1 }), d, estado);
   assert.equal(celdaEstado(estado, filaRegistroDe(estado, 901), 'ESTADO'), 'CERRADA');
   const nuevo = filaRegistroDe(estado, 902);
   assert.equal(celdaEstado(estado, nuevo, 'ESTADO'), 'ABIERTA');
   assert.equal(celdaEstado(estado, nuevo, 'ID FILAS'), filaDe(sep, 8)['ID FILA']);
-  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Super 99');
-  assert.equal(filaDe(sep, 8)['ID FACTURA'], 'SUPER99-20260927');
-  assert.equal(datosEstado(estado, nuevo).datos.proveedor, 'Super 99');
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Seven 11');
+  assert.equal(filaDe(sep, 8)['ID FACTURA'], 'SEVEN11-20260927');
+  assert.equal(datosEstado(estado, nuevo).datos.proveedor, 'Seven 11');
 });
 
 test('la corrección cierra las preguntas abiertas de las filas viejas', () => {
   const { sep, estado, d } = conEntrada(
     [datosGemini({ intencion: 'CORREGIR', clase: 'GROCERIES' })],
-    datosGemini({ intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-27', total: 22.5 }),
+    datosGemini({ intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-27', total: 22.5 }),
   );
   assert.equal(celdaEstado(estado, 2, 'TIPO'), 'PREGUNTA');
   atenderMensaje_(mensaje('es groceries', { message_id: ID_ERIN + 1 }), d, estado);
@@ -396,35 +396,35 @@ test('corregir el proveedor a uno con historial claro deduce la clase (ejemplo d
     intencion: 'GASTO', proveedor: null, fecha: '2026-09-26', casa: 'PRINCIPAL', total: 22.5,
   });
   const historial = Array.from({ length: 10 }, (_, i) => ({
-    proveedor: 'Riba Smith', clase: i % 2 ? 'GROCERIES' : 'GROCERIES W2 NORTE',
+    proveedor: 'Whole Foods', clase: i % 2 ? 'GROCERIES' : 'GROCERIES W2 NORTE',
   }));
-  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'Riba Smith' });
+  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'Whole Foods' });
   const { sep, estado, d } = conEntrada([correccion], entradaPendiente, { historial });
-  atenderMensaje_(mensaje('el proveedor es Riba Smith', { message_id: ID_ERIN + 1 }), d, estado);
+  atenderMensaje_(mensaje('el proveedor es Whole Foods', { message_id: ID_ERIN + 1 }), d, estado);
   assert.equal(filaDe(sep, 8)['CLASE DE GASTO'], 'GROCERIES W4 NORTE');
 });
 
-test('corregir el proveedor a uno con historial dividido (NOVEY) deja la clase PENDIENTE y vuelve a preguntar', () => {
+test('corregir el proveedor a uno con historial dividido (IKEA) deja la clase PENDIENTE y vuelve a preguntar', () => {
   const entradaPendiente = datosGemini({ intencion: 'GASTO', proveedor: null, fecha: '2026-09-26', total: 22.5 });
   const historial = [
-    { proveedor: 'Novey', clase: 'MISCELANEOS' },
-    { proveedor: 'Novey', clase: 'MISCELANEOS' },
-    { proveedor: 'Novey', clase: 'MAINTENANCE' },
-    { proveedor: 'Novey', clase: 'MAINTENANCE' },
+    { proveedor: 'IKEA', clase: 'MISCELANEOS' },
+    { proveedor: 'IKEA', clase: 'MISCELANEOS' },
+    { proveedor: 'IKEA', clase: 'MAINTENANCE' },
+    { proveedor: 'IKEA', clase: 'MAINTENANCE' },
   ];
-  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'Novey' });
+  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'IKEA' });
   const { sep, estado, d } = conEntrada([correccion], entradaPendiente, { historial });
-  atenderMensaje_(mensaje('el proveedor es Novey', { message_id: ID_ERIN + 1 }), d, estado);
+  atenderMensaje_(mensaje('el proveedor es IKEA', { message_id: ID_ERIN + 1 }), d, estado);
   assert.equal(filaDe(sep, 8)['CLASE DE GASTO'], 'PENDIENTE');
   assert.match(textoEnviado(d, 1), /¿Me dices la clase de gasto\?/);
 });
 
 test('corregir el proveedor cuando la corrección también trae su propia clase no la deduce', () => {
   const entradaPendiente = datosGemini({ intencion: 'GASTO', proveedor: null, fecha: '2026-09-26', total: 22.5 });
-  const historial = Array.from({ length: 5 }, () => ({ proveedor: 'Riba Smith', clase: 'GROCERIES' }));
-  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'Riba Smith', clase: 'Farmacia y medicinas' });
+  const historial = Array.from({ length: 5 }, () => ({ proveedor: 'Whole Foods', clase: 'GROCERIES' }));
+  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'Whole Foods', clase: 'Farmacia y medicinas' });
   const { sep, estado, d } = conEntrada([correccion], entradaPendiente, { historial });
-  atenderMensaje_(mensaje('era de Riba Smith y fue de farmacia', { message_id: ID_ERIN + 1 }), d, estado);
+  atenderMensaje_(mensaje('era de Whole Foods y fue de farmacia', { message_id: ID_ERIN + 1 }), d, estado);
   // La corrección trajo su propia clase (un grupo de la lista): no se deduce del historial.
   assert.equal(filaDe(sep, 8)['CLASE DE GASTO'], 'MEDS');
 });
@@ -433,19 +433,19 @@ test('corregir el proveedor cuando la corrección también trae su propia clase 
 
 test('una corrección de fecha conserva el proveedor que el usuario contestó antes', () => {
   const sinProveedor = datosGemini({ intencion: 'GASTO', proveedor: null, fecha: '2026-09-27', total: 22.5, clase: 'GROCERIES' });
-  const respuesta = datosGemini({ intencion: 'RESPUESTA', proveedor: 'Super 99' });
+  const respuesta = datosGemini({ intencion: 'RESPUESTA', proveedor: 'Seven 11' });
   const correccion = datosGemini({ intencion: 'CORREGIR', fecha: '2026-09-26' });
   const { sep, estado, d } = conEntrada([respuesta, correccion], sinProveedor);
-  atenderMensaje_(mensaje('Super 99', { message_id: ID_ERIN + 1, reply_to_message: { message_id: 901 } }), d, estado);
-  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Super 99');
+  atenderMensaje_(mensaje('Seven 11', { message_id: ID_ERIN + 1, reply_to_message: { message_id: 901 } }), d, estado);
+  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Seven 11');
   atenderMensaje_(mensaje('la fecha era el 26', { message_id: ID_ERIN + 2 }), d, estado);
   assert.ok(filaVacia(sep, 7), JSON.stringify(filaDe(sep, 7)));
-  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Super 99');
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Seven 11');
   assert.equal(filaDe(sep, 8).FECHA, '2026-09-26');
 });
 
 test('una corrección de fecha conserva la clase que el usuario contestó antes', () => {
-  const sinClase = datosGemini({ intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-27', total: 22.5, clase: 'PENDIENTE' });
+  const sinClase = datosGemini({ intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-27', total: 22.5, clase: 'PENDIENTE' });
   const respuesta = datosGemini({ intencion: 'RESPUESTA', clase: 'Farmacia y medicinas' });
   const correccion = datosGemini({ intencion: 'CORREGIR', fecha: '2026-09-26' });
   const { sep, estado, d } = conEntrada([respuesta, correccion], sinClase);
@@ -463,26 +463,26 @@ test('corregir el proveedor usa la ortografía del historial (defecto de la revi
     intencion: 'GASTO', proveedor: null, fecha: '2026-09-26', casa: 'PRINCIPAL', total: 22.5, clase: 'GROCERIES',
   });
   const historial = [
-    { proveedor: 'Super 99', clase: 'GROCERIES' },
-    { proveedor: 'Super 99', clase: 'GROCERIES' },
-    { proveedor: 'SUPER 99', clase: 'GROCERIES' },
+    { proveedor: 'Seven 11', clase: 'GROCERIES' },
+    { proveedor: 'Seven 11', clase: 'GROCERIES' },
+    { proveedor: 'SEVEN 11', clase: 'GROCERIES' },
   ];
-  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'super 99' });
+  const correccion = datosGemini({ intencion: 'CORREGIR', proveedor: 'seven 11' });
   const { sep, estado, d } = conEntrada([correccion], entradaPendiente, { historial });
-  atenderMensaje_(mensaje('el proveedor es super 99', { message_id: ID_ERIN + 1 }), d, estado);
-  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Super 99');
+  atenderMensaje_(mensaje('el proveedor es seven 11', { message_id: ID_ERIN + 1 }), d, estado);
+  assert.equal(filaDe(sep, 8).PROVEEDOR, 'Seven 11');
 });
 
 test('responder la pregunta de proveedor usa la ortografía del historial (defecto de la revisión)', () => {
-  const historial = [{ proveedor: 'Riba Smith', clase: 'GROCERIES' }, { proveedor: 'Riba Smith', clase: 'GROCERIES' }];
+  const historial = [{ proveedor: 'Whole Foods', clase: 'GROCERIES' }, { proveedor: 'Whole Foods', clase: 'GROCERIES' }];
   const { sep, estado, ss } = escenario({ filas: [], historial });
   const sinProveedor = datosGemini({ intencion: 'GASTO', fecha: '2026-09-27', total: 22.5, clase: 'GROCERIES' });
   const d = dependencias(ss);
   ponerGemini(sinProveedor);
   atenderMensaje_(mensaje('22.50 super'), d, estado);
-  ponerGemini(datosGemini({ intencion: 'RESPUESTA', proveedor: 'riba smith' }));
-  atenderMensaje_(mensaje('riba smith', { message_id: ID_ERIN + 1, reply_to_message: { message_id: 901 } }), d, estado);
-  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Riba Smith');
+  ponerGemini(datosGemini({ intencion: 'RESPUESTA', proveedor: 'whole foods' }));
+  atenderMensaje_(mensaje('whole foods', { message_id: ID_ERIN + 1, reply_to_message: { message_id: 901 } }), d, estado);
+  assert.equal(filaDe(sep, 6).PROVEEDOR, 'Whole Foods');
 });
 
 test('corregir algo que no es el proveedor no toca la clase que ya estaba', () => {
@@ -494,7 +494,7 @@ test('corregir algo que no es el proveedor no toca la clase que ya estaba', () =
 test('responder a la confirmación con el cambio corrige esa entrada (Supuesto T y AA (3))', () => {
   // Gemini la lee como un gasto nuevo; al responder a la confirmación es una corrección.
   const comoGasto = datosGemini({
-    intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-27', total: 22.5, forma_pago: 'TARJETA',
+    intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-27', total: 22.5, forma_pago: 'TARJETA',
   });
   const { sep, estado, d } = conEntrada([comoGasto]);
   atenderMensaje_(mensaje('la forma de pago es tarjeta', {
@@ -508,12 +508,12 @@ test('responder a la confirmación con el cambio corrige esa entrada (Supuesto T
 test('sin "Responder", CORREGIR va a la última entrada', () => {
   const caso = escenario();
   ponerGemini([
-    GASTO_RIBA,
+    GASTO_WHOLEFOODS,
     datosGemini({ intencion: 'DEPOSITO', fecha: '2026-09-27', total: 500 }),
     datosGemini({ intencion: 'CORREGIR', total: 400 }),
   ]);
   const d = dependencias(caso.ss);
-  atenderMensaje_(mensaje('22.50 super Riba Smith'), d, caso.estado);
+  atenderMensaje_(mensaje('22.50 super Whole Foods'), d, caso.estado);
   atenderMensaje_(mensaje('me depositaron 500', { message_id: ID_ERIN + 1 }), d, caso.estado);
   atenderMensaje_(mensaje('corrige el último: eran 400', { message_id: ID_ERIN + 2 }), d, caso.estado);
   // El gasto no se tocó; el depósito quedó corregido.
@@ -553,7 +553,7 @@ test('CORREGIR que deja la entrada sin monto no toca las filas viejas', () => {
 test('"corrige el último, el total eran 22.50" ajusta la línea única al nuevo total (defecto E1)', () => {
   // "25 efectivo": Gemini devuelve el total y una sola línea con ese mismo monto.
   const UNA_LINEA = datosGemini({
-    intencion: 'GASTO', proveedor: 'Riba Smith', fecha: '2026-09-27', total: 25, clase: 'GROCERIES',
+    intencion: 'GASTO', proveedor: 'Whole Foods', fecha: '2026-09-27', total: 25, clase: 'GROCERIES',
     lineas: [{ tipo: 'ITEM', descripcion: 'efectivo', monto: 25, confianza: 'ALTA' }],
   });
   const correccion = datosGemini({ intencion: 'CORREGIR', total: 22.5 });
@@ -620,7 +620,7 @@ test('la instrucción de Gemini lleva los detalles de la entrada a la que apunta
   const cuerpo = JSON.parse(pedidos[1].opciones.payload);
   const instruccion = cuerpo.systemInstruction.parts[0].text;
   assert.match(instruccion, /última entrada que el bot registró/);
-  assert.match(instruccion, /proveedor: Riba Smith/);
+  assert.match(instruccion, /proveedor: Whole Foods/);
   assert.match(instruccion, /total: 22\.5/);
   assert.match(instruccion, /clase de gasto: GROCERIES/);
   assert.match(instruccion, /- CORREGIR:/);
@@ -629,8 +629,8 @@ test('la instrucción de Gemini lleva los detalles de la entrada a la que apunta
 
 test('sin ninguna entrada registrada la instrucción no habla de correcciones', () => {
   const { ss, estado } = escenario();
-  const pedidos = ponerGemini(GASTO_RIBA);
-  atenderMensaje_(mensaje('22.50 super Riba Smith'), dependencias(ss), estado);
+  const pedidos = ponerGemini(GASTO_WHOLEFOODS);
+  atenderMensaje_(mensaje('22.50 super Whole Foods'), dependencias(ss), estado);
   const instruccion = JSON.parse(pedidos[0].opciones.payload).systemInstruction.parts[0].text;
   assert.ok(!instruccion.includes('última entrada que el bot registró'), instruccion);
 });
@@ -648,7 +648,7 @@ const botonBorrar = (clave, si, extra = {}) => ({
 test('"borra el último" pregunta con los dos botones y no borra nada todavía', () => {
   const { sep, estado, d } = conEntrada([BORRAR]);
   atenderMensaje_(mensaje('borra el último', { message_id: ID_ERIN + 1 }), d, estado);
-  assert.equal(textoEnviado(d, 1), '¿Segura que quieres borrar el gasto de Riba Smith por 22.50 del 27/09/2026?');
+  assert.equal(textoEnviado(d, 1), '¿Segura que quieres borrar el gasto de Whole Foods por 22.50 del 27/09/2026?');
   assert.deepEqual(d.llamadas[1][1].reply_markup.inline_keyboard[0].map((b) => b.text), ['Sí, bórralo', 'No, déjalo']);
   assert.equal(filaDe(sep, 7)['GASTO (USD)'], 22.5);
   assert.equal(celdaEstado(estado, 3, 'TIPO'), 'BORRAR');
@@ -723,7 +723,7 @@ test('responder "borrar" a una confirmación pregunta por esa entrada', () => {
   atenderMensaje_(mensaje('borrar', {
     message_id: ID_ERIN + 1, reply_to_message: { message_id: 901, text: 'Listo, agregué el gasto' },
   }), d, estado);
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
 });
 
 // --- Atajo de "borrar" sin Gemini ---
@@ -735,7 +735,7 @@ test('atajo: "borrar" solo, citando una confirmación con REGISTRO abierto, pide
     message_id: ID_ERIN + 1, reply_to_message: { message_id: 901, text: 'Listo, agregué el gasto' },
   }), d, estado);
   assert.equal(pedidos.length, antes, 'no debió llamar a Gemini');
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
   assert.equal(celdaEstado(estado, 3, 'TIPO'), 'BORRAR');
   assert.equal(celdaEstado(estado, 3, 'CLAVE'), '901');
 });
@@ -759,7 +759,7 @@ test('atajo: usa el registro sano real y no lo marca perdido', () => {
   } finally {
     global.registroParaEscribir_ = leer;
   }
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
   assert.equal(propiedades.getProperty('EDICIONES_PERDIDA'), null);
 });
 
@@ -770,7 +770,7 @@ test('atajo: variaciones con mayúsculas/tildes/puntuación también piden confi
     message_id: ID_ERIN + 1, reply_to_message: { message_id: 901, text: 'Listo, agregué el gasto' },
   }), d, estado);
   assert.equal(pedidos.length, antes, 'no debió llamar a Gemini');
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
 });
 
 test('atajo: funciona aunque Gemini esté caído (no lo necesita)', () => {
@@ -780,7 +780,7 @@ test('atajo: funciona aunque Gemini esté caído (no lo necesita)', () => {
   atenderMensaje_(mensaje('borrar', {
     message_id: ID_ERIN + 1, reply_to_message: { message_id: 901, text: 'Listo, agregué el gasto' },
   }), d, estado);
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
   assert.equal(filaDe(sep, 7)['GASTO (USD)'], 22.5); // nada se borró todavía, falta el botón "Sí"
 });
 
@@ -789,7 +789,7 @@ test('atajo: bare "borrar" sin citar nada pide confirmar el borrado de la últim
   const antes = pedidos.length;
   atenderMensaje_(mensaje('borrar', { message_id: ID_ERIN + 1 }), d, estado);
   assert.equal(pedidos.length, antes, 'no debió llamar a Gemini');
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
   assert.equal(celdaEstado(estado, 3, 'TIPO'), 'BORRAR');
   assert.equal(celdaEstado(estado, 3, 'CLAVE'), '901');
 });
@@ -799,7 +799,7 @@ test('atajo: bare "borrar" funciona aunque Gemini esté caído', () => {
   // Gemini quedaría sin más respuestas en la cola: si el atajo lo llamara, esto fallaría.
   global.UrlFetchApp = { fetch: () => { throw new Error('Gemini no debería llamarse'); } };
   atenderMensaje_(mensaje('borrar', { message_id: ID_ERIN + 1 }), d, estado);
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
   assert.equal(filaDe(sep, 7)['GASTO (USD)'], 22.5); // nada se borró todavía, falta el botón "Sí"
 });
 
@@ -815,9 +815,9 @@ test('atajo: bare "borrar" sin ninguna entrada registrada avisa y no escribe nad
 
 test('atajo: bare "borrar" sin citar nada, con dos entradas registradas, pide confirmar la más nueva', () => {
   const caso = escenario();
-  const pedidos = ponerGemini([GASTO_RIBA, datosGemini({ intencion: 'DEPOSITO', fecha: '2026-09-27', total: 500 })]);
+  const pedidos = ponerGemini([GASTO_WHOLEFOODS, datosGemini({ intencion: 'DEPOSITO', fecha: '2026-09-27', total: 500 })]);
   const d = dependencias(caso.ss);
-  atenderMensaje_(mensaje('22.50 super Riba Smith'), d, caso.estado);
+  atenderMensaje_(mensaje('22.50 super Whole Foods'), d, caso.estado);
   atenderMensaje_(mensaje('me depositaron 500', { message_id: ID_ERIN + 1 }), d, caso.estado);
   const antes = pedidos.length;
   atenderMensaje_(mensaje('borrar', { message_id: ID_ERIN + 2 }), d, caso.estado);
@@ -832,7 +832,7 @@ test('"borra el de ayer" citando una confirmación sigue el camino de Gemini (te
     message_id: ID_ERIN + 1, reply_to_message: { message_id: 901, text: 'Listo, agregué el gasto' },
   }), d, estado);
   assert.equal(pedidos.length, antes + 1, 'debió llamar a Gemini');
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
 });
 
 test('"borrar" citando un mensaje sin REGISTRO abierto sigue el camino de Gemini', () => {
@@ -842,7 +842,7 @@ test('"borrar" citando un mensaje sin REGISTRO abierto sigue el camino de Gemini
     message_id: ID_ERIN + 1, reply_to_message: { message_id: 999999, text: 'otro mensaje' },
   }), d, estado);
   assert.equal(pedidos.length, antes + 1, 'debió llamar a Gemini porque el citado no tiene REGISTRO abierto');
-  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Riba Smith/);
+  assert.match(textoEnviado(d, 1), /^¿Segura que quieres borrar el gasto de Whole Foods/);
 });
 
 test('BORRAR sin ninguna entrada registrada avisa y no escribe nada', () => {
@@ -894,11 +894,11 @@ test('corregir la forma de pago de una confirmación con "(falta)" corrige eso y
 
 test('responder el dato que falta a una confirmación con "(falta)" sigue contestando la pregunta abierta', () => {
   const incompleto = datosGemini({ intencion: 'GASTO', fecha: '2026-09-27', total: 25 });
-  const respuesta = datosGemini({ intencion: 'RESPUESTA', proveedor: 'Super 99' });
+  const respuesta = datosGemini({ intencion: 'RESPUESTA', proveedor: 'Seven 11' });
   const { sep, estado, d } = conEntrada([respuesta], incompleto);
-  atenderMensaje_(mensaje('el proveedor es Super 99', {
+  atenderMensaje_(mensaje('el proveedor es Seven 11', {
     message_id: ID_ERIN + 1, reply_to_message: { message_id: 901, text: 'Listo, agregué el gasto' },
   }), d, estado);
-  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Super 99');
+  assert.equal(filaDe(sep, 7).PROVEEDOR, 'Seven 11');
   assert.match(textoEnviado(d, 1), /^Listo, lo anoté\./);
 });

@@ -192,7 +192,7 @@ function instruccionTexto_(hoy, preguntas, entrada) {
     '- RESPUESTA: contesta algo que el bot le preguntó (un nombre, una fecha, un monto suelto).',
     '- AYUDA: saluda, pide ayuda o pregunta cómo funciona esto ("¿cómo funciona esto?",',
     '  "qué puedo escribirte").',
-    '- CORREGIR: cambia algo que ya se anotó ("corrige el último: el proveedor es Super 99",',
+    '- CORREGIR: cambia algo que ya se anotó ("corrige el último: el proveedor es Seven 11",',
     '  "de esos 22.50, 1.50 fue propina", "la forma de pago es tarjeta", "comentario: para la fiesta").',
     '- BORRAR: pide quitar lo que se anotó ("borra el último", "borrar", "no debí anotar eso").',
     '- OTRO: cualquier otra cosa.',

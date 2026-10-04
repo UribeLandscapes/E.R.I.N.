@@ -105,21 +105,21 @@ test('filasGasto_ convierte un nombre de grupo de Gemini a la etiqueta real, seg
 // --- Clase por proveedor dominante ---
 
 test('filasGasto_ usa el proveedor dominante del historial aunque Gemini elija otra clase', () => {
-  const historial = Array.from({ length: 3 }, () => ({ proveedor: 'Riba Smith', clase: 'GROCERIES' }));
-  const entrada = { ...propina, proveedor: 'Riba Smith', clase: 'Mantenimiento y reparaciones' };
+  const historial = Array.from({ length: 3 }, () => ({ proveedor: 'Whole Foods', clase: 'GROCERIES' }));
+  const entrada = { ...propina, proveedor: 'Whole Foods', clase: 'Mantenimiento y reparaciones' };
   const { filas } = filasGasto_(entrada, contexto({ historial }));
   assert.equal(filas[0]['CLASE DE GASTO'], 'GROCERIES W4 NORTE');
 });
 
 test('filasGasto_ sin proveedor dominante no pregunta la clase si Gemini ya la resolvió', () => {
-  const entrada = { ...propina, proveedor: 'Riba Smith', clase: 'Supermercado' };
+  const entrada = { ...propina, proveedor: 'Whole Foods', clase: 'Supermercado' };
   const { filas, preguntas } = filasGasto_(entrada, contexto({ historial: [] }));
   assert.equal(filas[0]['CLASE DE GASTO'], 'GROCERIES W4 NORTE');
   assert.ok(!preguntas.includes('clase'));
 });
 
 test('filasGasto_ sin dominante y sin clase clara de Gemini sí pregunta la clase (PENDIENTE)', () => {
-  const entrada = { ...propina, proveedor: 'Riba Smith', clase: 'PENDIENTE' };
+  const entrada = { ...propina, proveedor: 'Whole Foods', clase: 'PENDIENTE' };
   const { filas, preguntas } = filasGasto_(entrada, contexto({ historial: [] }));
   assert.equal(filas[0]['CLASE DE GASTO'], 'PENDIENTE');
   assert.ok(preguntas.includes('clase'));
@@ -186,11 +186,11 @@ test('filasGasto_ sin fecha leída usa la fecha del mensaje sin preguntar ni mar
 });
 
 test('filasGasto_ con proveedor, fecha y clase no pregunta nada', () => {
-  const completo = { ...propina, proveedor: 'Riba Smith', fecha: '2026-09-20', clase: 'GROCERIES' };
+  const completo = { ...propina, proveedor: 'Whole Foods', fecha: '2026-09-20', clase: 'GROCERIES' };
   const { filas, preguntas } = filasGasto_(completo, contexto());
   assert.deepEqual(preguntas, []);
-  assert.equal(filas[0]['ID FACTURA'], 'RIBASMITH-20260920');
-  assert.equal(filas[0].PROVEEDOR, 'Riba Smith');
+  assert.equal(filas[0]['ID FACTURA'], 'WHOLEFOODS-20260920');
+  assert.equal(filas[0].PROVEEDOR, 'Whole Foods');
   assert.equal(filas[0].FECHA, '2026-09-20');
   assert.equal(filas[0]['CLASE DE GASTO'], 'GROCERIES');
   assert.equal(filas[0].REVISAR, '');
@@ -198,30 +198,30 @@ test('filasGasto_ con proveedor, fecha y clase no pregunta nada', () => {
 
 test('filasGasto_ escribe el proveedor con la ortografía del historial (Supuesto AB, punto F)', () => {
   const historial = [
-    { proveedor: 'Super 99', clase: 'GROCERIES' },
-    { proveedor: 'Super 99', clase: 'GROCERIES' },
-    { proveedor: 'SUPER 99', clase: 'GROCERIES' },
+    { proveedor: 'Seven 11', clase: 'GROCERIES' },
+    { proveedor: 'Seven 11', clase: 'GROCERIES' },
+    { proveedor: 'SEVEN 11', clase: 'GROCERIES' },
   ];
-  const entrada = { ...propina, proveedor: 'super 99', fecha: '2026-09-20', clase: 'GROCERIES' };
+  const entrada = { ...propina, proveedor: 'seven 11', fecha: '2026-09-20', clase: 'GROCERIES' };
   const { filas } = filasGasto_(entrada, contexto({ historial }));
-  assert.equal(filas[0].PROVEEDOR, 'Super 99');
+  assert.equal(filas[0].PROVEEDOR, 'Seven 11');
 });
 
 test('filasGasto_ sin historial y proveedor todo en minúsculas usa mayúscula inicial por palabra', () => {
-  const entrada = { ...propina, proveedor: 'riba smith', fecha: '2026-09-20', clase: 'GROCERIES' };
+  const entrada = { ...propina, proveedor: 'whole foods', fecha: '2026-09-20', clase: 'GROCERIES' };
   const { filas } = filasGasto_(entrada, contexto({ historial: [] }));
-  assert.equal(filas[0].PROVEEDOR, 'Riba Smith');
+  assert.equal(filas[0].PROVEEDOR, 'Whole Foods');
 });
 
 test('filasGasto_ nunca toca el proveedor cuando queda PENDIENTE', () => {
-  const { filas } = filasGasto_(propina, contexto({ historial: [{ proveedor: 'Super 99', clase: 'GROCERIES' }] }));
+  const { filas } = filasGasto_(propina, contexto({ historial: [{ proveedor: 'Seven 11', clase: 'GROCERIES' }] }));
   assert.equal(filas[0].PROVEEDOR, 'PENDIENTE');
 });
 
 // --- Fecha de otro mes ---
 
 test('filasGasto_ con fecha del recibo de otro mes no escribe nada y devuelve fechaDistinta', () => {
-  const otroMes = { ...propina, proveedor: 'Riba Smith', fecha: '2026-08-15', clase: 'GROCERIES' };
+  const otroMes = { ...propina, proveedor: 'Whole Foods', fecha: '2026-08-15', clase: 'GROCERIES' };
   const { filas, preguntas, fechaDistinta } = filasGasto_(otroMes, contexto({ fechaMensaje: '2026-09-26' }));
   assert.deepEqual(filas, []);
   assert.deepEqual(preguntas, []);
@@ -229,7 +229,7 @@ test('filasGasto_ con fecha del recibo de otro mes no escribe nada y devuelve fe
 });
 
 test('filasGasto_ con fecha del recibo del mismo mes (otro día) no pregunta nada de fecha', () => {
-  const mismoMes = { ...propina, proveedor: 'Riba Smith', fecha: '2026-09-01', clase: 'GROCERIES' };
+  const mismoMes = { ...propina, proveedor: 'Whole Foods', fecha: '2026-09-01', clase: 'GROCERIES' };
   const { filas, fechaDistinta } = filasGasto_(mismoMes, contexto({ fechaMensaje: '2026-09-26' }));
   assert.equal(fechaDistinta, null);
   assert.equal(filas[0].FECHA, '2026-09-01');
@@ -241,7 +241,7 @@ test('filasGasto_ sin fecha leída no pregunta por mes distinto (usa la del mens
 });
 
 test('planTexto_ gasto con fecha de otro mes pregunta con las dos fechas y no escribe', () => {
-  const otroMes = { ...propina, proveedor: 'Riba Smith', fecha: '2026-08-15', clase: 'GROCERIES' };
+  const otroMes = { ...propina, proveedor: 'Whole Foods', fecha: '2026-08-15', clase: 'GROCERIES' };
   const plan = planTexto_(otroMes, contexto({ fechaMensaje: '2026-09-26', saldoInicialDefinido: true }));
   assert.deepEqual(plan.filas, []);
   assert.deepEqual(plan.fechaDistinta, { fechaRecibo: '2026-08-15', fechaEnvio: '2026-09-26' });
@@ -269,7 +269,7 @@ test('filasGasto_ junta ITEM e ITBMS en una sola fila, cada uno en su columna', 
 
 test('filasGasto_ suma varios artículos en ARTÍCULOS y junta sus descripciones', () => {
   const varios = datos({
-    proveedor: 'Super 99', fecha: '2026-09-20', clase: 'GROCERIES',
+    proveedor: 'Seven 11', fecha: '2026-09-20', clase: 'GROCERIES',
     lineas: [
       { tipo: 'ITEM', descripcion: 'arroz', monto: 3.25, confianza: 'ALTA' },
       { tipo: 'ITEM', descripcion: 'pollo', monto: 7.4, confianza: 'ALTA' },
@@ -317,7 +317,7 @@ test('filasGasto_ manda PROPINA y OTROS a OTROS CARGOS y los suma', () => {
 
 test('filasGasto_ suma en centavos, sin arrastrar el error de los decimales', () => {
   const centavos = datos({
-    proveedor: 'Super 99', fecha: '2026-09-20', clase: 'GROCERIES',
+    proveedor: 'Seven 11', fecha: '2026-09-20', clase: 'GROCERIES',
     lineas: [
       { tipo: 'ITEM', descripcion: 'a', monto: 0.1, confianza: 'ALTA' },
       { tipo: 'ITEM', descripcion: 'b', monto: 0.2, confianza: 'ALTA' },
@@ -444,7 +444,7 @@ test('filasGasto_ forma de pago desconocida queda vacía', () => {
 
 test('filasGasto_ ITEM con descripción vacía → "Agregar descripción"', () => {
   const item = datos({
-    proveedor: 'Super 99', fecha: '2026-09-20', clase: 'GROCERIES',
+    proveedor: 'Seven 11', fecha: '2026-09-20', clase: 'GROCERIES',
     lineas: [{ tipo: 'ITEM', descripcion: '', monto: 25, confianza: 'ALTA' }],
     total: 25,
   });
@@ -452,10 +452,10 @@ test('filasGasto_ ITEM con descripción vacía → "Agregar descripción"', () =
   assert.equal(filas[0]['DESCRIPCIÓN'], 'Agregar descripción');
 });
 
-test('filasGasto_ ITEM descripción "super 99" con proveedor "SUPER 99" → "Agregar descripción"', () => {
+test('filasGasto_ ITEM descripción "seven 11" con proveedor "SEVEN 11" → "Agregar descripción"', () => {
   const item = datos({
-    proveedor: 'SUPER 99', fecha: '2026-09-20', clase: 'GROCERIES',
-    lineas: [{ tipo: 'ITEM', descripcion: 'super 99', monto: 25, confianza: 'ALTA' }],
+    proveedor: 'SEVEN 11', fecha: '2026-09-20', clase: 'GROCERIES',
+    lineas: [{ tipo: 'ITEM', descripcion: 'seven 11', monto: 25, confianza: 'ALTA' }],
     total: 25,
   });
   const { filas } = filasGasto_(item, contexto());
@@ -497,7 +497,7 @@ test('filasGasto_ PROPINA con descripción se deja tal cual; sin ella dice solo 
 
 test('filasGasto_ sin ningún artículo con descripción avisa "Agregar descripción" y conserva las partes', () => {
   const sinDescripcion = datos({
-    proveedor: 'Super 99', fecha: '2026-09-20', clase: 'GROCERIES',
+    proveedor: 'Seven 11', fecha: '2026-09-20', clase: 'GROCERIES',
     lineas: [
       { tipo: 'ITEM', descripcion: '', monto: 20, confianza: 'ALTA' },
       { tipo: 'PROPINA', descripcion: '', monto: 1, confianza: 'ALTA' },
@@ -722,7 +722,7 @@ test('preguntaDestino_ sin "Responder": un nombre va a la pregunta de proveedor,
     conPreguntas('gasto', ['proveedor'], new Date('2026-09-27T10:00:00Z')),
     conPreguntas('total', ['total'], new Date('2026-09-27T11:00:00Z')), // más reciente
   ];
-  const respuesta = { proveedor: 'Riba Smith', total: null, lineas: [] };
+  const respuesta = { proveedor: 'Whole Foods', total: null, lineas: [] };
   assert.equal(preguntaDestino_(abiertas, null, respuesta).clave, 'gasto');
 });
 
@@ -869,7 +869,7 @@ test('planTexto_ ya no agrega ningún recordatorio de saldo inicial (Supuesto Z:
 
 test('textoGuia_ es la guía aprobada: saludo, 7 puntos numerados y el cierre "ayuda"', () => {
   assert.match(textoGuia_(), /^¡Hola Ana! ¿Qué quieres hacer hoy\? Puedes escribirme así:/);
-  assert.match(textoGuia_(), /1\. Un gasto: "22\.50 efectivo super Riba Smith" \(con propina: "22\.50 Riba, 1\.50 de propina"\)/);
+  assert.match(textoGuia_(), /1\. Un gasto: "22\.50 efectivo super Whole Foods" \(con propina: "22\.50 Whole Foods, 1\.50 de propina"\)/);
   assert.match(textoGuia_(), /2\. Un depósito: "me depositaron 250"/);
   assert.match(textoGuia_(), /3\. Revisar la caja: "tengo 85"/);
   assert.match(textoGuia_(), /4\. La casa: agrega "Casa Playa" o "Casa Norte"/);
@@ -882,7 +882,7 @@ test('textoGuia_ es la guía aprobada: saludo, 7 puntos numerados y el cierre "a
 
 test('TEXTO_NO_ENTENDI es el texto (g) aprobado y manda a escribir "ayuda"', () => {
   assert.equal(TEXTO_NO_ENTENDI, 'No entendí bien. Puedes escribir, por ejemplo, '
-    + '"22.50 efectivo super Riba Smith" o "me depositaron 250". Escribe "ayuda" para ver '
+    + '"22.50 efectivo super Whole Foods" o "me depositaron 250". Escribe "ayuda" para ver '
     + 'todo lo que puedo hacer.');
 });
 

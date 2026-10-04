@@ -151,7 +151,7 @@ test('instruccionTexto_ sin entrada no habla de la última entrada', () => {
 
 test('instruccionTexto_ con entrada pone sus detalles y cómo corregirla', () => {
   const entrada = {
-    proveedor: 'Riba Smith', fecha: '2026-09-26', total: 22.5, forma_pago: 'EFECTIVO',
+    proveedor: 'Whole Foods', fecha: '2026-09-26', total: 22.5, forma_pago: 'EFECTIVO',
     clase: 'GROCERIES', casa: 'SECUNDARIA', comentario: 'para la fiesta',
     lineas: [
       { tipo: 'ITEM', descripcion: 'compras', monto: 21 },
@@ -159,7 +159,7 @@ test('instruccionTexto_ con entrada pone sus detalles y cómo corregirla', () =>
     ],
   };
   const instruccion = instruccionTexto_(HOY, null, entrada);
-  assert.match(instruccion, /- proveedor: Riba Smith/);
+  assert.match(instruccion, /- proveedor: Whole Foods/);
   assert.match(instruccion, /- fecha: 2026-09-26/);
   assert.match(instruccion, /- total: 22\.5/);
   assert.match(instruccion, /- líneas: ITEM compras 21 \| PROPINA 1\.5/);
@@ -183,8 +183,8 @@ test('instruccionTexto_ con una entrada a medias dice qué no se sabe', () => {
 });
 
 test('cuerpoTextoGemini_ pasa la entrada a la instrucción', () => {
-  const cuerpo = cuerpoTextoGemini_('corrige el último', CATEGORIAS, HOY, null, { proveedor: 'Riba Smith' });
-  assert.match(cuerpo.systemInstruction.parts[0].text, /- proveedor: Riba Smith/);
+  const cuerpo = cuerpoTextoGemini_('corrige el último', CATEGORIAS, HOY, null, { proveedor: 'Whole Foods' });
+  assert.match(cuerpo.systemInstruction.parts[0].text, /- proveedor: Whole Foods/);
 });
 
 // --- Acuses: ok, listo, está bien, gracias, etc. ---

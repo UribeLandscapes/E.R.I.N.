@@ -102,8 +102,8 @@ test('filaLibre_: si no cabe, el bloque sigue después del final (hay que agrega
 });
 
 test('filaComoObjeto_ nombra cada valor por su columna', () => {
-  const o = filaComoObjeto_(filaHoja({ PROVEEDOR: 'Riba Smith', 'ID FILA': 'B-1' }));
-  assert.equal(o.PROVEEDOR, 'Riba Smith');
+  const o = filaComoObjeto_(filaHoja({ PROVEEDOR: 'Whole Foods', 'ID FILA': 'B-1' }));
+  assert.equal(o.PROVEEDOR, 'Whole Foods');
   assert.equal(o['ID FILA'], 'B-1');
 });
 
@@ -194,10 +194,10 @@ test('preguntasAbiertas_: sin CLAVE el idMensajeBot es null; sin ID FILAS la lis
 });
 
 test('cambiosRespuesta_: solo lo que se preguntó y vino válido', () => {
-  const r = { proveedor: 'Riba Smith', fecha: '2026-08-30', clase: 'COMIDA', total: 31, lineas: [] };
-  assert.deepEqual(cambiosRespuesta_(r, ['fecha', 'proveedor']), { FECHA: '2026-08-30', PROVEEDOR: 'Riba Smith' });
+  const r = { proveedor: 'Whole Foods', fecha: '2026-08-30', clase: 'COMIDA', total: 31, lineas: [] };
+  assert.deepEqual(cambiosRespuesta_(r, ['fecha', 'proveedor']), { FECHA: '2026-08-30', PROVEEDOR: 'Whole Foods' });
   assert.deepEqual(cambiosRespuesta_(r, ['clase', 'total']), { 'CLASE DE GASTO': 'COMIDA', 'GASTO (USD)': 31 });
-  assert.deepEqual(cambiosRespuesta_(r, ['depositante']), { PROVEEDOR: 'Riba Smith' });
+  assert.deepEqual(cambiosRespuesta_(r, ['depositante']), { PROVEEDOR: 'Whole Foods' });
 });
 
 test('cambiosRespuesta_: el total en otra moneda va a MONTO ORIGINAL y a GASTO con la tasa de la fila', () => {
@@ -221,9 +221,9 @@ test('cambiosRespuesta_: el total en PAB va a GASTO (USD), como en USD', () => {
 });
 
 test('cambiosRespuesta_: el proveedor de la respuesta usa la ortografía del historial (Supuesto AB, punto F)', () => {
-  const r = { proveedor: 'super 99', fecha: null, clase: null, total: null, lineas: [] };
-  const contexto = { historial: [{ proveedor: 'Super 99', clase: 'GROCERIES' }, { proveedor: 'Super 99', clase: 'GROCERIES' }] };
-  assert.deepEqual(cambiosRespuesta_(r, ['proveedor'], contexto), { PROVEEDOR: 'Super 99' });
+  const r = { proveedor: 'seven 11', fecha: null, clase: null, total: null, lineas: [] };
+  const contexto = { historial: [{ proveedor: 'Seven 11', clase: 'GROCERIES' }, { proveedor: 'Seven 11', clase: 'GROCERIES' }] };
+  assert.deepEqual(cambiosRespuesta_(r, ['proveedor'], contexto), { PROVEEDOR: 'Seven 11' });
 });
 
 test('cambiosRespuesta_: ignora fecha inválida, clase PENDIENTE y total no numérico', () => {
@@ -269,9 +269,9 @@ const escritoDe = (fila) => ({
 test('planRespuesta_: aplica lo pendiente y rehace ID FACTURA y REVISAR', () => {
   const filas = [{ idFila: 'BOT-1', valores: actual() }, { idFila: 'BOT-2', valores: actual({ 'ID FILA': 'BOT-2' }) }];
   const escrito = { 'BOT-1': escritoDe(filasEscritas[0]), 'BOT-2': escritoDe(filasEscritas[1]) };
-  const plan = planRespuesta_(filas, escrito, { PROVEEDOR: 'Riba Smith', 'GASTO (USD)': 32 }, []);
+  const plan = planRespuesta_(filas, escrito, { PROVEEDOR: 'Whole Foods', 'GASTO (USD)': 32 }, []);
   assert.deepEqual(plan.porFila['BOT-1'], {
-    PROVEEDOR: 'Riba Smith', 'GASTO (USD)': 32, 'ID FACTURA': 'RIBASMITH-20260926', REVISAR: 'PENDIENTE: FECHA',
+    PROVEEDOR: 'Whole Foods', 'GASTO (USD)': 32, 'ID FACTURA': 'WHOLEFOODS-20260926', REVISAR: 'PENDIENTE: FECHA',
   });
   assert.deepEqual(plan.porFila['BOT-2'], plan.porFila['BOT-1']);
   assert.deepEqual(plan.corregidas, []);
@@ -312,8 +312,8 @@ test('planRespuesta_: fecha de otro mes pide mover la fila', () => {
 
 test('planRespuesta_: si el usuario cambió REVISAR o ID FACTURA a mano, no se tocan', () => {
   const filas = [{ idFila: 'BOT-1', valores: actual({ REVISAR: 'ok', 'ID FACTURA': 'MIA-1' }) }];
-  const plan = planRespuesta_(filas, { 'BOT-1': escritoDe(filasEscritas[0]) }, { PROVEEDOR: 'Riba Smith', FECHA: '2026-09-25' }, []);
-  assert.deepEqual(plan.porFila['BOT-1'], { PROVEEDOR: 'Riba Smith', FECHA: '2026-09-25' });
+  const plan = planRespuesta_(filas, { 'BOT-1': escritoDe(filasEscritas[0]) }, { PROVEEDOR: 'Whole Foods', FECHA: '2026-09-25' }, []);
+  assert.deepEqual(plan.porFila['BOT-1'], { PROVEEDOR: 'Whole Foods', FECHA: '2026-09-25' });
 });
 
 test('planRespuesta_: depósito cambia "Beto" solo si sigue igual', () => {

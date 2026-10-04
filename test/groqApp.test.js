@@ -29,9 +29,9 @@ function respuestaFalsa(codigo, texto) {
 
 function datosGroqOk(extra) {
   const extraccion = {
-    legible: true, tipo_documento: 'TICKET', proveedor: 'Super 99', fecha: '2026-09-20',
+    legible: true, tipo_documento: 'TICKET', proveedor: 'Seven 11', fecha: '2026-09-20',
     moneda: 'USD', forma_pago: 'EFECTIVO', lineas: [{ tipo: 'ITEM', descripcion: 'Leche', monto: 1.55, confianza: 'ALTA' }],
-    total: 1.55, clase: 'GROCERIES', casa: null, comentario: null, descripcion_corta: 'leche super 99',
+    total: 1.55, clase: 'GROCERIES', casa: null, comentario: null, descripcion_corta: 'leche seven 11',
     confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
     ...extra,
   };
@@ -57,7 +57,7 @@ test('llamarGroq_ manda POST con Authorization Bearer y JSON, y nunca lanza con 
   assert.deepEqual(opciones.opts.headers, { Authorization: `Bearer ${CLAVE_GROQ}` });
   assert.equal(opciones.opts.muteHttpExceptions, true);
   assert.equal(r.codigo, 200);
-  assert.equal(r.datos.choices[0].message.content.includes('Super 99'), true);
+  assert.equal(r.datos.choices[0].message.content.includes('Seven 11'), true);
 });
 
 test('llamarGroq_ nunca manda la clave en la URL', () => {
@@ -121,7 +121,7 @@ test('intentarGroq_ con éxito devuelve la lectura y deja el rastro', () => {
   try {
     const r = intentarGroq_(CLAVE_GROQ, cuerpoGeminiFoto(), CATEGORIAS, false, 'HTTP 503');
     assert.equal(r.ok, true);
-    assert.equal(r.datos.proveedor, 'Super 99');
+    assert.equal(r.datos.proveedor, 'Seven 11');
     assert.deepEqual(registrado, ['Gemini falló (HTTP 503) → leyó Groq']);
   } finally {
     console.log = original;
@@ -155,9 +155,9 @@ test('motivoGeminiFallo_ da "sin conexión", "HTTP <código>" o el motivo de lee
 test('llamarConRespaldoGroq_ sin falla de Gemini nunca intenta Groq', () => {
   global.UrlFetchApp = { fetch: () => { throw new Error('no debería llamarse'); } };
   const extraccion = {
-    legible: true, tipo_documento: 'TICKET', proveedor: 'Super 99', fecha: '2026-09-20',
+    legible: true, tipo_documento: 'TICKET', proveedor: 'Seven 11', fecha: '2026-09-20',
     moneda: 'USD', forma_pago: 'EFECTIVO', lineas: [{ tipo: 'ITEM', descripcion: 'Leche', monto: 1.55, confianza: 'ALTA' }],
-    total: 1.55, clase: 'GROCERIES', casa: null, comentario: null, descripcion_corta: 'leche super 99',
+    total: 1.55, clase: 'GROCERIES', casa: null, comentario: null, descripcion_corta: 'leche seven 11',
     confianza: { proveedor: 'ALTA', fecha: 'ALTA', moneda: 'ALTA', total: 'ALTA', clase: 'ALTA' },
   };
   const datosGemini = { candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(extraccion) }] } }] };
@@ -176,7 +176,7 @@ test('llamarConRespaldoGroq_ con Gemini caído (error) y Groq con éxito devuelv
   );
   assert.ok(intento.error);
   assert.equal(groq.ok, true);
-  assert.equal(groq.datos.proveedor, 'Super 99');
+  assert.equal(groq.datos.proveedor, 'Seven 11');
 });
 
 test('llamarConRespaldoGroq_ con Gemini HTTP != 200 y sin clave de Groq no arma el cuerpo ni llama a Groq', () => {

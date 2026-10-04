@@ -147,15 +147,15 @@ test('resumenHoja_ también devuelve proveedor y clase de cada fila de _HISTORIA
   const ss = libro({
     meses: [],
     historial: [
-      { proveedor: 'Riba Smith', clase: 'GROCERIES' },
-      { proveedor: 'RIBASMITH', clase: 'GROCERIES W2 NORTE' },
-      { proveedor: 'Novey', clase: 'MISCELANEOS' },
+      { proveedor: 'Whole Foods', clase: 'GROCERIES' },
+      { proveedor: 'WHOLEFOODS', clase: 'GROCERIES W2 NORTE' },
+      { proveedor: 'IKEA', clase: 'MISCELANEOS' },
     ],
   });
   assert.deepEqual(resumenHoja_(ss).historialProveedores, [
-    { proveedor: 'Riba Smith', clase: 'GROCERIES' },
-    { proveedor: 'RIBASMITH', clase: 'GROCERIES W2 NORTE' },
-    { proveedor: 'Novey', clase: 'MISCELANEOS' },
+    { proveedor: 'Whole Foods', clase: 'GROCERIES' },
+    { proveedor: 'WHOLEFOODS', clase: 'GROCERIES W2 NORTE' },
+    { proveedor: 'IKEA', clase: 'MISCELANEOS' },
   ]);
 });
 

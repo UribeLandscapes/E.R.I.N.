@@ -23,17 +23,17 @@ const REGISTRADO = new Date(2026, 8, 15, 10, 0, 0);
 const filaHoja = (valores) => COLUMNAS.map((c) => (c in valores ? valores[c] : ''));
 
 const existente = (extra = {}) => filaHoja({
-  FECHA: '2026-09-15', PROVEEDOR: 'Riba Smith', 'GASTO (USD)': 22.5, TIPO: 'GASTO',
+  FECHA: '2026-09-15', PROVEEDOR: 'Whole Foods', 'GASTO (USD)': 22.5, TIPO: 'GASTO',
   ORIGEN: 'BOT', REGISTRADO, ...extra,
 });
 
 const nueva = (extra = {}) => ({
-  FECHA: '2026-09-15', PROVEEDOR: 'Riba Smith', 'GASTO (USD)': 22.5, TIPO: 'GASTO', ...extra,
+  FECHA: '2026-09-15', PROVEEDOR: 'Whole Foods', 'GASTO (USD)': 22.5, TIPO: 'GASTO', ...extra,
 });
 
 test('encuentra la misma factura: mismo proveedor, fecha y total', () => {
   const dup = buscarDuplicado_([existente()], nueva());
-  assert.equal(dup.proveedor, 'Riba Smith');
+  assert.equal(dup.proveedor, 'Whole Foods');
   assert.equal(dup.fecha, '2026-09-15');
   assert.equal(dup.total, 22.5);
   assert.equal(dup.origen, 'BOT');
@@ -41,8 +41,8 @@ test('encuentra la misma factura: mismo proveedor, fecha y total', () => {
 });
 
 test('el proveedor con otra ortografía cuenta como el mismo', () => {
-  assert.ok(buscarDuplicado_([existente({ PROVEEDOR: 'RIBA SMITH' })], nueva({ PROVEEDOR: 'riba smith' })));
-  assert.ok(buscarDuplicado_([existente({ PROVEEDOR: 'ribasmith' })], nueva()));
+  assert.ok(buscarDuplicado_([existente({ PROVEEDOR: 'WHOLE FOODS' })], nueva({ PROVEEDOR: 'whole foods' })));
+  assert.ok(buscarDuplicado_([existente({ PROVEEDOR: 'wholefoods' })], nueva()));
 });
 
 test('el total se compara al centavo: 22.504 de la hoja es 22.50', () => {
@@ -53,7 +53,7 @@ test('el total se compara al centavo: 22.504 de la hoja es 22.50', () => {
 test('otro total, otra fecha u otro proveedor no son duplicado', () => {
   assert.equal(buscarDuplicado_([existente()], nueva({ 'GASTO (USD)': 23 })), null);
   assert.equal(buscarDuplicado_([existente()], nueva({ FECHA: '2026-09-16' })), null);
-  assert.equal(buscarDuplicado_([existente()], nueva({ PROVEEDOR: 'Super 99' })), null);
+  assert.equal(buscarDuplicado_([existente()], nueva({ PROVEEDOR: 'Seven 11' })), null);
 });
 
 test('un depósito, saldo inicial o ajuste que coincide no cuenta', () => {
@@ -102,7 +102,7 @@ test('entradas vacías o inválidas no lanzan y devuelven null', () => {
 test('texto de fila del bot o a mano: "la agregaste el <REGISTRADO>"', () => {
   const dup = buscarDuplicado_([existente()], nueva());
   assert.equal(textoDuplicado_(dup),
-    'Esta factura ya está anotada: la agregaste el 15/09/2026 por 22.50, proveedor Riba Smith.');
+    'Esta factura ya está anotada: la agregaste el 15/09/2026 por 22.50, proveedor Whole Foods.');
   const manual = buscarDuplicado_([existente({ ORIGEN: 'MANUAL', REGISTRADO: new Date(2026, 8, 20) })], nueva());
   assert.match(textoDuplicado_(manual), /la agregaste el 20\/09\/2026 por 22\.50/);
 });
@@ -110,7 +110,7 @@ test('texto de fila del bot o a mano: "la agregaste el <REGISTRADO>"', () => {
 test('texto de fila del Excel viejo: usa la fecha de la factura', () => {
   const dup = buscarDuplicado_([existente({ ORIGEN: 'ARCHIVO', REGISTRADO: new Date(2026, 8, 30) })], nueva());
   assert.equal(textoDuplicado_(dup),
-    'Esta factura ya está anotada en el Excel viejo: factura del 15/09/2026 por 22.50, proveedor Riba Smith.');
+    'Esta factura ya está anotada en el Excel viejo: factura del 15/09/2026 por 22.50, proveedor Whole Foods.');
 });
 
 test('texto de una fila del bot sin REGISTRADO usa la fecha de la factura', () => {
