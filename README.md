@@ -231,6 +231,15 @@ Panama-specific handling: the prompts and rules know the ITBMS sales tax, Yappy 
 - The bot's interface is Spanish only.
 - The expense classes and the two-house split reflect the original use. Expect to adjust `CASAS` and `src/Clases.js` for yours.
 
+### Known issues
+
+These came out of a code review before release and are not fixed yet:
+
+- After you confirm a photo's total, a supplier name you send without replying to the bot's question may not be matched to that photo. It goes to Gemini as a new message instead. Reply directly to the bot's supplier question to avoid this.
+- If you answer the supplier question a second time after it was already filled in, the bot says it saved the new name but does not change the row. Use a correction instead ("corrige el último: ...").
+- Two deposits dated in an earlier month but sent in a later month can get the same ID FACTURA (for example `DEPOSITO-20260930`) in the earlier month's sheet. Check that column if you backdate several deposits.
+- If Telegram or Drive fails right after a photo's expense is written, the row is safe and not duplicated, but the photo can stay in "Por clasificar" and the date question is not asked again. Move the photo by hand.
+
 ## En español
 
 E.R.I.N. es un bot de Telegram para llevar la caja chica. Le mandas la foto de una factura o un mensaje corto, Gemini lo lee y el bot escribe una fila en una hoja de Google Sheets. Corre en Google Apps Script, así que no necesitas servidor. Opcionalmente copia la hoja a un Excel en Drive cada 5 minutos.
