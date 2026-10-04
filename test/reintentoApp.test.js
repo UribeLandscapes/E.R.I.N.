@@ -32,6 +32,7 @@ global.Utilities = { sleep: () => {} };
 global.PESTANA_ESTADO = '_ESTADO';
 global.PESTANA_HISTORIAL = '_HISTORIAL';
 global.registroParaEscribir_ = () => registroEdiciones_({ filas: [], corte: '20260926-000000', disponible: true });
+global.asegurarEdiciones_ = () => true;
 const { hojaFalsa, libroFalso, filaDe, ponerFila } = require('./falsos.js');
 Object.assign(global, require('../src/EscrituraApp.js'));
 Object.assign(global, require('../src/BotonesApp.js'));
@@ -1031,4 +1032,53 @@ test('escribirCeldas_: escapa fórmulas en columnas guarded, no en FECHA/FOTO', 
   assert.equal(f['DESCRIPCIÓN'], "'=FORMULA");
   assert.deepEqual(f.FECHA, fecha);
   assert.equal(f.FOTO, '=enlace');
+});
+
+// --- Hallazgos de la auditoría 3 (reintentos sin duplicar y REGISTRO al día) ---
+
+/** Los datos guardados del REGISTRO abierto de la confirmación (no la entrada POR-PROCESAR). */
+function datosRegistro(estado) {
+  const fila = [2, 3, 4, 5].find((f) => celdaEstado(estado, f, 'TIPO') === 'REGISTRO');
+  return datosEstado(estado, fila).datos;
+}
+
+test('si falla Telegram tras escribir la foto releída, la entrada ya está cerrada y el reintento no inserta otra fila', () => {
+  const caso = fotoSinLeer();
+  ponerGemini(datosFoto());
+  const llamar = caso.d.llamar;
+  caso.d.llamar = (token, metodo, cuerpo) => {
+    if (metodo === 'sendMessage') throw new Error('Telegram no responde');
+    return llamar(token, metodo, cuerpo);
+  };
+  const lineas = reintentarPorProcesar_(caso.d, caso.estado);
+  assert.match(lineas[0], /Telegram no responde/);
+  assert.equal(filaDe(caso.sep, 7)['GASTO (USD)'], 66.34);
+  assert.equal(celdaEstado(caso.estado, 2, 'ESTADO'), PREGUNTA_CERRADA);
+  caso.d.llamar = llamar;
+  assert.deepEqual(reintentarPorProcesar_(caso.d, caso.estado), []);
+  assert.equal(filaDe(caso.sep, 8)['GASTO (USD)'], '');
+});
+
+test('el reintento que llena los pendientes pone proveedor, clase y pago en el REGISTRO de la confirmación', () => {
+  const caso = conTotalConfirmado();
+  ponerGemini(datosFoto());
+  reintentarPorProcesar_(caso.d, caso.estado);
+  const datos = datosRegistro(caso.estado);
+  assert.equal(datos.proveedor, 'Riba Smith');
+  assert.equal(datos.forma_pago, 'EFECTIVO');
+  assert.equal(datos.clase, filaDe(caso.sep, 7)['CLASE DE GASTO']);
+});
+
+test('la forma de pago tocada se guarda en el REGISTRO de la confirmación', () => {
+  const caso = conTotalConfirmado();
+  atenderBoton_(toquePago('tarjeta'), caso.d, caso.estado);
+  assert.equal(datosRegistro(caso.estado).forma_pago, 'TARJETA');
+});
+
+test('el proveedor escrito y su clase se guardan en el REGISTRO de la confirmación', () => {
+  const caso = enModoPreguntas(HISTORIAL_RIBA);
+  atenderMensaje_(mensajeTexto('riba smith'), caso.d, caso.estado);
+  const datos = datosRegistro(caso.estado);
+  assert.equal(datos.proveedor, 'Riba Smith');
+  assert.equal(datos.clase, filaDe(caso.sep, 7)['CLASE DE GASTO']);
 });

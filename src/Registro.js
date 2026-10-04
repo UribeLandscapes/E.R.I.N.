@@ -105,7 +105,7 @@ function fusionarCorreccion_(guardados, cambios) {
  * no deshace lo contestado. El total en otra moneda se guarda en esa moneda (MONTO ORIGINAL).
  */
 function datosTrasRespuesta_(guardados, porFila) {
-  const campos = { FECHA: 'fecha', PROVEEDOR: 'proveedor', 'CLASE DE GASTO': 'clase' };
+  const campos = { FECHA: 'fecha', PROVEEDOR: 'proveedor', 'CLASE DE GASTO': 'clase', 'FORMA DE PAGO': 'forma_pago' };
   const cambios = {};
   for (const cambio of Object.values(porFila || {})) {
     for (const [columna, campo] of Object.entries(campos)) {

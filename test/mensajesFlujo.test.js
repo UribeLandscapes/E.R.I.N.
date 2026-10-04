@@ -21,6 +21,7 @@ Object.assign(global, require('../src/Mensajes.js'));
 Object.assign(global, require('../src/Ediciones.js'));
 Object.assign(global, require('../src/Edicion.js'));
 global.registroParaEscribir_ = () => ({ disponible: true, corte: '20260926-000000', porId: new Map() });
+global.asegurarEdiciones_ = () => true;
 global.avisarChoques_ = () => {};
 global.CONFIG = require('./configPrueba.js').CONFIG;
 global.PESTANA_ESTADO = '_ESTADO';

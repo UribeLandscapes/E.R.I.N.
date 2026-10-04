@@ -10,7 +10,7 @@
  * preguntarFechaFotoSiHace_ de FechaFotoApp.js; esLaPreguntaMasNueva_ e instanteEstado_ de
  * PorProcesarApp.js; ortografiaProveedor_ de Reglas.js; claseInferidaProveedor_ de Clases.js;
  * numeroColumna_ de Hoja.js; CONFIG de Config.js.
- * Usa registroParaEscribir_ y avisarChoques_ de EdicionesApp.js y filtrarCambiosManuales_, textoNadaCambiado_,
+ * Usa sincronizarRegistros_ de RegistroApp.js, registroParaEscribir_ y avisarChoques_ de EdicionesApp.js y filtrarCambiosManuales_, textoNadaCambiado_,
  * textoColumnasSaltadas_ de Ediciones.js.
  */
 const TEXTO_SIN_FOTOS_POR_PROCESAR = 'No hay ninguna foto por procesar';
@@ -89,6 +89,18 @@ function llenarFilas_(filas, nuevos, marcarTotal, registro) {
   });
 }
 
+/**
+ * Pone lo que llenarFilas_ escribió de verdad en los datos de cada REGISTRO abierto de esas filas
+ * (incluida la forma de pago), para que una corrección posterior no regrese lo recuperado.
+ */
+function sincronizarLlenas_(hojaEstado, llenas) {
+  const porFila = {};
+  llenas.filter((fila) => Object.keys(fila.cambios).length)
+    .forEach((fila) => { porFila[fila.idFila] = fila.cambios; });
+  const ids = Object.keys(porFila);
+  if (ids.length) sincronizarRegistros_(hojaEstado, ids, porFila);
+}
+
 /** Las celdas que llenarFilas_ escribió de verdad, por pestaña y fila. */
 const escritosLlenados_ = (llenas) => llenas.map((fila) => ({
   pestana: fila.hoja.getName(), idFila: fila.idFila, columnas: Object.keys(fila.cambios),
@@ -130,6 +142,7 @@ function llenarFilasEscritas_(entorno, entrada, filas, datos, marcarTotal) {
   const desde = entorno.deps.ahora();
   const registro = registroParaEscribir_(entorno.ss, entorno.deps);
   const llenas = llenarFilas_(filas, nuevos, marcarTotal, registro);
+  sincronizarLlenas_(entorno.hojaEstado, llenas);
   llenas.filter((fila) => fila.saltadas.length).forEach((fila) => console.log(
     `${fila.hoja.getName()} ${fila.idFila}: no cambié ${fila.saltadas.join(', ')}, editadas a mano`,
   ));
@@ -141,8 +154,9 @@ function llenarFilasEscritas_(entorno, entrada, filas, datos, marcarTotal) {
 /**
  * Gemini volvió y el total nunca se confirmó: la foto se escribe por el camino normal (el mismo
  * resultado que si Gemini la hubiera leído al llegar), con su confirmación y su pregunta de fecha.
+ * `alRegistrar` corre apenas la fila queda escrita, antes de responder: ahí se cierra la entrada.
  */
-function escribirFotoReleida_(entorno, entrada, leido) {
+function escribirFotoReleida_(entorno, entrada, leido, alRegistrar) {
   const { deps } = entorno;
   const datos = {
     ...leido.datos,
@@ -156,7 +170,7 @@ function escribirFotoReleida_(entorno, entrada, leido) {
   };
   const plan = planFoto_(datos, ctx);
   if (plan.filas.length) clasificarFotoLeida_(leido.archivo, plan, datos, deps.carpetaFacturas());
-  const escritas = registrarPlan_(entorno, plan, ctx, datos);
+  const escritas = registrarPlan_(entorno, plan, ctx, datos, alRegistrar);
   preguntarFechaFotoSiHace_(entorno, {
     fechaIlegible: plan.fechaIlegible, escritas, idMensaje: entrada.idMensaje,
   });
@@ -177,9 +191,10 @@ function aplicarGemini_(entorno, entrada, filas, leido, decision) {
     cerrarEstado_(hojaEstado, entrada.fila);
     return `foto ${entrada.idMensaje}: Gemini llenó ${llenas} campos pendientes`;
   }
-  const escritas = escribirFotoReleida_(entorno, entrada, leido);
+  // La entrada se cierra apenas se escribe la fila (antes de los mensajes): si algo falla después,
+  // el siguiente reintento no la vuelve a insertar.
+  const escritas = escribirFotoReleida_(entorno, entrada, leido, () => cerrarEstado_(hojaEstado, entrada.fila));
   quitarBotonesPropuesta_(deps, momento.chatId, entrada.idPregunta);
-  cerrarEstado_(hojaEstado, entrada.fila);
   return `foto ${entrada.idMensaje}: Gemini la leyó y se escribió ${escritas} fila(s)`;
 }
 
@@ -329,6 +344,7 @@ function atenderBotonFormaPago_(entorno, callbackQuery) {
   quitarBotones_(entorno, callbackQuery);
   const desde = deps.ahora();
   const llenas = llenarFilas_(filas, { 'FORMA DE PAGO': boton.forma }, false, registroParaEscribir_(ss, deps));
+  sincronizarLlenas_(hojaEstado, llenas);
   avisarChoques_(ss, desde, () => escritosLlenados_(llenas), deps.propiedades);
   if (llenas.some((fila) => fila.saltadas.includes('FORMA DE PAGO'))) {
     enviarTelegram_(deps, 'sendMessage', { chat_id: entorno.momento.chatId,
@@ -380,6 +396,7 @@ function atenderProveedorEscrito_(entorno, mensaje, texto) {
     registroParaEscribir_(ss, deps));
   const saltadas = [...new Set(llenas.flatMap((fila) => fila.saltadas))];
   const proveedorSaltado = saltadas.includes('PROVEEDOR');
+  sincronizarLlenas_(hojaEstado, llenas);
   avisarChoques_(ss, desde, () => escritosLlenados_(llenas), deps.propiedades);
   if (!proveedorSaltado) renombrarFoto_(deps, entrada, llenas[0].valores, llenas[0].cambios.PROVEEDOR);
   const respuesta = proveedorSaltado ? textoNadaCambiado_(['PROVEEDOR'])

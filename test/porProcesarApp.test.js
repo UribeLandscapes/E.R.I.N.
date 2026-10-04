@@ -28,6 +28,7 @@ global.CONFIG = require('./configPrueba.js').CONFIG;
 global.Utilities = { sleep: () => {} };
 global.PESTANA_ESTADO = '_ESTADO';
 global.PESTANA_HISTORIAL = '_HISTORIAL';
+global.asegurarEdiciones_ = () => true;
 const { hojaFalsa, libroFalso, filaDe, ponerFila } = require('./falsos.js');
 Object.assign(global, require('../src/EscrituraApp.js'));
 Object.assign(global, require('../src/BotonesApp.js'));
@@ -45,6 +46,8 @@ Object.assign(global, require('../src/Importacion.js'));
 Object.assign(global, require('../src/Duplicado.js'));
 Object.assign(global, require('../src/DuplicadoApp.js'));
 
+Object.assign(global, require('../src/Edicion.js'), require('../src/Ediciones.js'));
+const edicionesReal = require('../src/EdicionesApp.js');
 const { atenderMensaje_, atenderBoton_ } = require('../src/MensajesApp.js');
 const { ocrDrive_, probarOcr, atenderTotalEscrito_, serviciosOcr_ } = require('../src/PorProcesarApp.js');
 const { dependenciasReales_ } = require('../src/WebhookApp.js');
@@ -637,4 +640,73 @@ test('un callback_data de total con clave rara solo contesta el toque', () => {
   assert.deepEqual(caso.sep.escrituras, []);
   const respuestas = caso.d.llamadas.filter(([metodo]) => metodo === 'answerCallbackQuery');
   assert.equal(respuestas[respuestas.length - 1][1].text, TEXTO_CONTEO_ATENDIDO);
+});
+
+// --- Hallazgos de la auditoría 3 (duplicados y registro de ediciones) ---
+
+/** Propiedades falsas del script, como las de PropertiesService. */
+function propiedadesFalsas() {
+  const datos = {};
+  return {
+    datos,
+    getProperty: (nombre) => datos[nombre] || null,
+    setProperty: (nombre, valor) => { datos[nombre] = valor; },
+    deleteProperty: (nombre) => { delete datos[nombre]; },
+  };
+}
+
+/** Telegram que falla en sendMessage (la confirmación) pero deja pasar lo demás. */
+function sinEnvios(d) {
+  const llamar = d.llamar;
+  d.llamar = (token, metodo, cuerpo) => {
+    if (metodo === 'sendMessage') throw new Error('Telegram no responde');
+    return llamar(token, metodo, cuerpo);
+  };
+  return llamar;
+}
+
+test('instalación nueva: el primer gasto del bot no queda protegido por el corte de ediciones', () => {
+  const propiedades = propiedadesFalsas();
+  const crear = global.crearPestanaOculta_;
+  global.crearPestanaOculta_ = (ss, nombre, columnas) => {
+    ss.hojas.push(hojaFalsa(nombre, { protegerDesborde: false }));
+    ss.hojas[ss.hojas.length - 1].appendRow([...columnas]);
+  };
+  global.asegurarEdiciones_ = edicionesReal.asegurarEdiciones_;
+  try {
+    // El reloj de arranque va DESPUÉS del sello de la fila: antes eso protegía la fila del propio bot.
+    const caso = sinGemini({ propiedades, sello: () => '20260927-093005' });
+    atenderBoton_(toqueTotal('si'), caso.d, caso.estado);
+    const corte = propiedades.getProperty('EDICIONES_CREADA');
+    const registro = registroEdiciones_({ filas: [], corte, disponible: true });
+    assert.deepEqual(proteccionFila_(registro, `BOT-${SELLO}-${ID_ERIN}-1`), { entera: false, columnas: [] });
+    // Una fila del bot de antes del arranque sigue protegida entera.
+    assert.equal(proteccionFila_(registro, 'BOT-20260101-000000-9-1').entera, true);
+  } finally {
+    global.crearPestanaOculta_ = crear;
+    global.asegurarEdiciones_ = () => true;
+  }
+});
+
+test('si falla la confirmación de Telegram, el total ya queda en ID FILAS y repetir "Sí" no duplica', () => {
+  const caso = sinGemini();
+  const llamar = sinEnvios(caso.d);
+  assert.throws(() => atenderBoton_(toqueTotal('si'), caso.d, caso.estado), /Telegram no responde/);
+  assert.equal(filaDe(caso.sep, 7)['GASTO (USD)'], 66.34);
+  assert.equal(celdaEstado(caso.estado, 2, 'ID FILAS'), `BOT-${SELLO}-${ID_ERIN}-1`);
+  caso.d.llamar = llamar;
+  atenderBoton_(toqueTotal('si'), caso.d, caso.estado);
+  assert.equal(filaDe(caso.sep, 8)['GASTO (USD)'], '');
+});
+
+test('si falla Drive tras escribir el total, repetir el monto escrito no duplica la fila', () => {
+  const caso = sinGemini();
+  caso.d.carpetaFacturas = () => { throw new Error('Drive no responde'); };
+  assert.throws(() => atenderBoton_(toqueTotal('si'), caso.d, caso.estado), /Drive no responde/);
+  assert.equal(celdaEstado(caso.estado, 2, 'ID FILAS'), `BOT-${SELLO}-${ID_ERIN}-1`);
+  const mensaje = { message_id: 700, date: 1, chat: { id: CHAT }, text: '66.34' };
+  const entorno = { hojaEstado: caso.estado, deps: caso.d,
+    momento: { ahora: AHORA, chatId: CHAT, sello: SELLO, fechaMensaje: '2026-09-27' } };
+  assert.equal(atenderTotalEscrito_(entorno, mensaje, '66.34'), false);
+  assert.equal(filaDe(caso.sep, 8)['GASTO (USD)'], '');
 });

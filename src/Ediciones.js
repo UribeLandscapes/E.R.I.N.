@@ -53,6 +53,20 @@ function selloDeIdFila_(idFila) {
   return partes ? partes[1] : null;
 }
 
+/**
+ * Un segundo antes de un sello AAAAMMDD-HHMMSS (o null si no lo es). Sirve de corte para que una
+ * fila escrita con ese sello quede DESPUÉS del corte: proteccionFila_ protege `sello <= corte`.
+ */
+function selloAnterior_(sello) {
+  const partes = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/.exec(String(sello));
+  if (!partes) return null;
+  const [anio, mes, dia, hora, minuto, segundo] = partes.slice(1).map(Number);
+  const antes = new Date(Date.UTC(anio, mes - 1, dia, hora, minuto, segundo) - 1000);
+  const dos = (n) => String(n).padStart(2, '0');
+  return `${antes.getUTCFullYear()}${dos(antes.getUTCMonth() + 1)}${dos(antes.getUTCDate())}`
+    + `-${dos(antes.getUTCHours())}${dos(antes.getUTCMinutes())}${dos(antes.getUTCSeconds())}`;
+}
+
 /** El corte tiene la precisión de segundo de FORMATO_SELLO. */
 function esCorte_(valor) {
   return /^\d{8}-\d{6}$/.test(valor);
@@ -164,7 +178,7 @@ if (typeof module !== 'undefined') {
     PESTANA_EDICIONES, COLUMNAS_EDICIONES, COLUMNAS_SISTEMA,
     PROPIEDAD_EDICIONES_CREADA, PROPIEDAD_EDICIONES_PERDIDA, SEPARADOR_COLUMNAS,
     esFilaBotAnotable_, columnasAnotables_, filaEdicion_, encabezadosEdicionesOk_,
-    estadoEdiciones_, selloDeIdFila_, esCorte_, registroEdiciones_, proteccionFila_,
+    estadoEdiciones_, selloDeIdFila_, selloAnterior_, esCorte_, registroEdiciones_, proteccionFila_,
     tieneEdicionesManuales_, filtrarCambiosManuales_, puedeCambiarRevisar_, choquesPosteriores_,
     TEXTO_NO_BORRO_MANUAL, TEXTO_NO_CORRIJO_MANUAL, textoColumnasSaltadas_, textoNadaCambiado_, textoChoque_,
   };

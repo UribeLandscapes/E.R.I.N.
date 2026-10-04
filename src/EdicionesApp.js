@@ -1,7 +1,7 @@
 /**
  * Registro de ediciones a mano en SpreadsheetApp. Usa PESTANA_EDICIONES,
  * COLUMNAS_EDICIONES, PROPIEDAD_EDICIONES_CREADA, PROPIEDAD_EDICIONES_PERDIDA,
- * encabezadosEdicionesOk_, estadoEdiciones_, registroEdiciones_, choquesPosteriores_ y textoChoque_ de Ediciones.js;
+ * encabezadosEdicionesOk_, estadoEdiciones_, selloAnterior_, registroEdiciones_, choquesPosteriores_ y textoChoque_ de Ediciones.js;
  * crearPestanaOculta_ de HojaApp.js; FORMATO_SELLO de Mensajes.js y CONFIG/Utilities al marcar pérdida.
  */
 
@@ -75,16 +75,27 @@ function leerRegistroEdiciones_(ss, propiedades) {
   return registroEdiciones_({ filas: [], corte, disponible: false });
 }
 
-/** Uso por escrituras del bot que ya tienen el candado. */
-function registroParaEscribir_(ss, deps) {
+/**
+ * Arranca el registro de ediciones si aún no existe, con el candado ya tomado. Se llama ANTES de la
+ * primera fila que escribe el bot, así el corte nunca queda después de las filas del propio bot.
+ * `selloFila` (opcional) es el sello de la fila por escribir: el corte es un segundo antes, porque
+ * proteccionFila_ protege todo sello <= corte. Devuelve false (sin lanzar) si no pudo arrancar.
+ */
+function asegurarEdiciones_(ss, deps, selloFila) {
   try {
     if (estadoActualEdiciones_(ss, deps.propiedades).estado === 'ARRANCAR') {
-      arrancarEdiciones_(ss, deps.propiedades, deps.sello());
+      arrancarEdiciones_(ss, deps.propiedades, (selloFila && selloAnterior_(selloFila)) || deps.sello());
     }
+    return true;
   } catch (error) {
     console.error(`_EDICIONES: no se pudo arrancar: ${error.message}`);
-    return registroEdiciones_({ filas: [], corte: '', disponible: false });
+    return false;
   }
+}
+
+/** Uso por escrituras del bot que ya tienen el candado. */
+function registroParaEscribir_(ss, deps) {
+  if (!asegurarEdiciones_(ss, deps)) return registroEdiciones_({ filas: [], corte: '', disponible: false });
   return leerRegistroEdiciones_(ss, deps.propiedades);
 }
 
@@ -110,6 +121,6 @@ function avisarChoques_(ss, desde, escritos, propiedades) {
 if (typeof module !== 'undefined') {
   module.exports = {
     estadoActualEdiciones_, marcarPerdida_, arrancarEdiciones_, leerRegistroEdiciones_,
-    registroParaEscribir_, avisarChoques_,
+    asegurarEdiciones_, registroParaEscribir_, avisarChoques_,
   };
 }

@@ -162,10 +162,18 @@ function planFotoSinLeer_(total, pregunta, ctx) {
   };
 }
 
+/** Anota en ID FILAS las filas escritas: esa marca es la que dice "el total ya se confirmó". */
+function anotarIdFilas_(hojaEstado, pregunta, escritas) {
+  celdaEstado_(hojaEstado, pregunta.fila, 'ID FILAS')
+    .setValue(escritas.map((escrita) => escrita.fila['ID FILA']).join(','));
+}
+
 /**
  * Escribe la fila de una foto con el total ya confirmado, la confirma, mueve la foto a la carpeta
  * de su mes y anota en ID FILAS lo que escribió: esa marca es la que dice "el total ya se
- * confirmó". La entrada sigue ABIERTA a propósito, para los reintentos de Gemini.
+ * confirmó". La marca se anota apenas se escribe la fila, antes de Telegram o Drive: si alguno
+ * falla, repetir el botón o el monto no escribe otra fila. La entrada sigue ABIERTA a propósito,
+ * para los reintentos de Gemini.
  */
 function escribirTotalConfirmado_(entorno, pregunta, total) {
   const { hojaEstado, deps } = entorno;
@@ -173,12 +181,11 @@ function escribirTotalConfirmado_(entorno, pregunta, total) {
   const completo = { ...entorno, ss, resumen: resumenHoja_(ss), registros: { citado: null, ultimo: null } };
   const ctx = contextoTexto_(completo, { idMensaje: pregunta.idMensaje, fechaMensaje: pregunta.fechaMensaje });
   const plan = planFotoSinLeer_(total, pregunta, ctx);
-  const escritas = registrarPlan_(completo, plan, ctx, plan.datos);
+  const escritas = registrarPlan_(completo, plan, ctx, plan.datos,
+    (escritasAhora) => { if (escritasAhora.length) anotarIdFilas_(hojaEstado, pregunta, escritasAhora); });
   if (!escritas.length) return;
   // El PROVEEDOR queda en PENDIENTE: el nombre del archivo lo pone DESCRIPCION_FOTO_SIN_LEER.
   moverFotoDelPlan_(deps, plan, { ...plan.datos, descripcion_corta: DESCRIPCION_FOTO_SIN_LEER });
-  celdaEstado_(hojaEstado, pregunta.fila, 'ID FILAS')
-    .setValue(escritas.map((escrita) => escrita.fila['ID FILA']).join(','));
 }
 
 /**

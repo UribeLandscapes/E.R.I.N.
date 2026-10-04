@@ -15,7 +15,7 @@ global.Utilities = { formatDate(fecha, zona, formato) {
 } };
 const {
   estadoActualEdiciones_, marcarPerdida_, arrancarEdiciones_, leerRegistroEdiciones_,
-  registroParaEscribir_, avisarChoques_,
+  asegurarEdiciones_, registroParaEscribir_, avisarChoques_,
 } = require('../src/EdicionesApp.js');
 
 function propiedadesFalsas(inicial = {}) {
@@ -263,4 +263,31 @@ test('avisarChoques_ registra, sin lanzar, si armar los escritos falla o faltan 
     assert.match(avisos.pop(), /faltan desde o propiedades/);
   } finally { console.error = real; }
   assert.deepEqual(avisos, []);
+});
+
+test('asegurarEdiciones_ arranca con el corte un segundo antes del sello de la fila por escribir', () => {
+  const props = propiedadesFalsas();
+  const ss = libroFalso();
+  assert.equal(asegurarEdiciones_(ss, { propiedades: props, sello: () => '20260928-093000' }, '20260928-093000'), true);
+  assert.equal(props.datos[PROPIEDAD_EDICIONES_CREADA], '20260928-092959');
+  assert.equal(ss.creadas, 1);
+});
+
+test('asegurarEdiciones_ sin sello de fila usa el reloj y no vuelve a arrancar si ya está lista', () => {
+  const props = propiedadesFalsas();
+  const ss = libroFalso();
+  asegurarEdiciones_(ss, { propiedades: props, sello: () => '20260928-093000' });
+  assert.equal(props.datos[PROPIEDAD_EDICIONES_CREADA], '20260928-093000');
+  asegurarEdiciones_(ss, { propiedades: props, sello: () => '20260929-000000' }, '20260929-000000');
+  assert.equal(props.datos[PROPIEDAD_EDICIONES_CREADA], '20260928-093000');
+  assert.equal(ss.creadas, 1);
+});
+
+test('asegurarEdiciones_ devuelve false sin lanzar si el arranque falla', () => {
+  const real = console.error;
+  console.error = () => {};
+  global.crearPestanaOculta_ = () => { throw new Error('sin permiso'); };
+  try {
+    assert.equal(asegurarEdiciones_(libroFalso(), { propiedades: propiedadesFalsas(), sello: () => '20260928-093000' }), false);
+  } finally { console.error = real; }
 });

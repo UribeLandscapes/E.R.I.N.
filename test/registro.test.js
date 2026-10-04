@@ -329,3 +329,10 @@ test('buscarBorrar_ se queda con la petición más nueva si el usuario pidió bo
   const nueva = filaBorrar_({ creado: AHORA, clave: '901' });
   assert.deepEqual(buscarBorrar_([vieja, nueva], '901'), { fila: 3, abierto: true, clave: '901' });
 });
+
+test('datosTrasRespuesta_ guarda la forma de pago que la respuesta escribió', () => {
+  const guardados = { forma_pago: 'DESCONOCIDA', total: 10, lineas: [] };
+  const fusion = datosTrasRespuesta_(guardados, { 'BOT-1': { 'FORMA DE PAGO': 'TARJETA' } });
+  assert.equal(fusion.forma_pago, 'TARJETA');
+  assert.equal(guardados.forma_pago, 'DESCONOCIDA');
+});

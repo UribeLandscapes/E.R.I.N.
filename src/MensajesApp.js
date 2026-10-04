@@ -19,7 +19,7 @@
  * atenderFoto_ y moverFotoDelPlan_ de MensajesFoto.js (el camino de una foto de factura);
  * PREFIJO_DUPLICADO de Duplicado.js y atenderBotonDuplicado_ de DuplicadoApp.js (aviso de
  * factura duplicada).
- * Usa registroParaEscribir_ y avisarChoques_ de EdicionesApp.js; tramosEscritura_ de Escritura.js; tieneEdicionesManuales_, TEXTO_NO_BORRO_MANUAL,
+ * Usa asegurarEdiciones_, registroParaEscribir_ y avisarChoques_ de EdicionesApp.js; tramosEscritura_ de Escritura.js; tieneEdicionesManuales_, TEXTO_NO_BORRO_MANUAL,
  * TEXTO_NO_CORRIJO_MANUAL de Ediciones.js.
  */
 const TIPO_SALDO_INICIAL = 'SALDO INICIAL';
@@ -180,7 +180,7 @@ function contextoTexto_(entorno, { idMensaje, fechaMensaje }) {
  * queda abierto (la clave de una pregunta es el message_id de esa respuesta). La fecha de otro
  * mes no escribe nada todavía: se resuelve aparte con botones.
  * `alRegistrar` (opcional) corre una sola vez cuando el registro ya quedó firme (filas escritas o
- * pregunta de fecha abierta) y antes de responder: ahí se cierra la pregunta que originó este
+ * pregunta de fecha abierta; recibe las filas escritas) y antes de responder: ahí se cierra la pregunta que originó este
  * registro, para que un fallo al escribir la deje abierta y un reintento no duplique filas.
  * Devuelve las filas que escribió ([{ pestana, numero, fila }], vacío si no escribió ninguna), que
  * es lo que MensajesFoto.js necesita para la pregunta.
@@ -188,12 +188,14 @@ function contextoTexto_(entorno, { idMensaje, fechaMensaje }) {
 function registrarPlan_(entorno, plan, ctx, datos, alRegistrar) {
   if (plan.fechaDistinta) {
     registrarFechaDistinta_(entorno, plan, ctx, datos);
-    if (alRegistrar) alRegistrar();
+    if (alRegistrar) alRegistrar([]);
     return [];
   }
   const { ss, momento } = entorno;
+  // El registro de ediciones arranca antes de la primera fila del bot: su corte no puede quedar después de ella.
+  if (plan.filas.length) asegurarEdiciones_(ss, entorno.deps, momento.sello);
   const escritas = plan.filas.length ? escribirFilas_(ss, plan.filas, momento.sello, momento.ahora) : [];
-  if (alRegistrar) alRegistrar();
+  if (alRegistrar) alRegistrar(escritas);
   responderPlan_(entorno, plan, ctx, datos, escritas);
   return escritas;
 }

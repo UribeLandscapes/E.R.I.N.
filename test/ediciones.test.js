@@ -10,7 +10,7 @@ const {
   PESTANA_EDICIONES, COLUMNAS_EDICIONES, COLUMNAS_SISTEMA,
   PROPIEDAD_EDICIONES_CREADA, PROPIEDAD_EDICIONES_PERDIDA, SEPARADOR_COLUMNAS,
   esFilaBotAnotable_, columnasAnotables_, filaEdicion_, encabezadosEdicionesOk_,
-  estadoEdiciones_, selloDeIdFila_, esCorte_, registroEdiciones_, proteccionFila_,
+  estadoEdiciones_, selloDeIdFila_, selloAnterior_, esCorte_, registroEdiciones_, proteccionFila_,
   tieneEdicionesManuales_, filtrarCambiosManuales_, puedeCambiarRevisar_, choquesPosteriores_,
   TEXTO_NO_BORRO_MANUAL, TEXTO_NO_CORRIJO_MANUAL, textoColumnasSaltadas_, textoNadaCambiado_, textoChoque_,
 } = require('../src/Ediciones.js');
@@ -215,4 +215,18 @@ test('textos para el usuario conservan redacción exacta y enumeran una o varias
     'No cambié PROVEEDOR y FECHA: las editaron a mano en la hoja.');
   assert.equal(textoChoque_({ pestana: 'Septiembre 2026', idFila: idNuevo, columna: 'FECHA' }),
     `posible choque con edición a mano: Septiembre 2026 ${idNuevo} FECHA`);
+});
+
+test('selloAnterior_ resta un segundo, cruza minuto, día, mes y año, y rechaza lo que no es sello', () => {
+  assert.equal(selloAnterior_('20260929-110001'), '20260929-110000');
+  assert.equal(selloAnterior_('20260929-110000'), '20260929-105959');
+  assert.equal(selloAnterior_('20261001-000000'), '20260930-235959');
+  assert.equal(selloAnterior_('20260101-000000'), '20251231-235959');
+  for (const malo of [null, undefined, '', 'abc', '2026-09-29', 20260929]) assert.equal(selloAnterior_(malo), null);
+});
+
+test('una fila escrita con el sello S queda desprotegida con el corte selloAnterior_(S)', () => {
+  const registro = registroEdiciones_({ filas: [], corte: selloAnterior_('20260929-110001'), disponible: true });
+  assert.equal(proteccionFila_(registro, idNuevo).entera, false);
+  assert.equal(proteccionFila_(registro, 'BOT-20260929-105959-501-1').entera, true);
 });
