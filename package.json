@@ -1,0 +1,10 @@
+{
+  "name": "erin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "E.R.I.N.: caja chica por Telegram con Gemini, Google Sheets y Drive (Google Apps Script) / Petty-cash tracker for Telegram",
+  "scripts": {
+    "test": "node --test 'test/**/*.test.js'",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80 --test-coverage-include='src/**' 'test/**/*.test.js'"
+  }
+}

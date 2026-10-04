@@ -1,0 +1,11 @@
+node_modules/
+coverage/
+.DS_Store
+# credenciales de clasp y enlace a TU proyecto: nunca en el repo (copia .clasp.json.example)
+.clasprc.json
+.clasp.json
+*.secret
+.env*
+
+# worktrees de Claude Code
+.claude/
