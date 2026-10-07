@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="E.R.I.N. banner: pixel-art Telegram icon and receipt feeding into a spreadsheet" width="100%">
+  <img src="assets/banner.png" alt="E.R.I.N. banner: a printed receipt reading Receipt Bot, with photo, Telegram and Sheets checked OK" width="100%">
 </p>
 
 # E.R.I.N.
