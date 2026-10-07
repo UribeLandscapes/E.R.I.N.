@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="E.R.I.N. banner: pixel-art Telegram icon and receipt feeding into a spreadsheet" width="100%">
+</p>
+
 # E.R.I.N.
 
 E.R.I.N. is a Telegram bot for petty-cash (caja chica) bookkeeping. You send it a receipt photo or a short text message, Gemini reads it, and the bot writes a row into a Google Sheet. It runs entirely on Google Apps Script, so there is no server to host. The bot speaks Spanish and is tuned for receipts from Panama.
